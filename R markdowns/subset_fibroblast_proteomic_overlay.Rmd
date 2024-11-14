@@ -1,0 +1,144 @@
+---
+title: "Fibroblast_Pseudobulk_overlap"
+output: html_document
+date: "2024-09-24"
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+
+####first set up done with SSc all
+proteomics_df <- read.csv('D:/Data/Data_drive/Data/IS_Protein_data/SSC_all_Healthy_allproteins.csv', row.names = 'Row.names')
+fibroblast_df <- read.csv('D:/Data/Data_drive/GSE138669_RAW/fibroblasts/DESeq2_fibroblasts.csv')
+colnames(fibroblast_df)[1] <- "EntrezGeneSymbol"
+fibroblast_df <- fibroblast_df %>% filter(baseMean >10)
+
+upregulated_fibroblast_df <- fibroblast_df %>% filter(log2FoldChange > 0 & padj <0.05)
+downregulated_fibroblast_df <- fibroblast_df %>% filter(log2FoldChange < 0 & padj <0.05)
+upregulated <- upregulated_fibroblast_df$EntrezGeneSymbol
+downregulated <- downregulated_fibroblast_df$EntrezGeneSymbol
+
+upregulated_proteomics <- proteomics_df %>%  filter(EntrezGeneSymbol %in% upregulated, P.Value <0.05, logFC >0)
+downregulated_proteomics <- proteomics_df %>%  filter(EntrezGeneSymbol %in% downregulated, P.Value <0.05, logFC <0)
+labels <- c(upregulated_proteomics$EntrezGeneSymbol,downregulated_proteomics$EntrezGeneSymbol)
+
+```
+
+```{r}
+library(EnhancedVolcano)
+
+proteomics_df <- proteomics_df %>%
+  mutate(labels = ifelse(
+    P.Value < 0.05 & (logFC > 0.585 | logFC < -0.585) & EntrezGeneSymbol %in% labels,
+    EntrezGeneSymbol, NA
+  ))
+Fibroblast_overlap_volcano <- EnhancedVolcano(data.frame(proteomics_df), x = 'logFC', y = 'P.Value',lab = proteomics_df$labels,selectLab = labels,
+    title = 'SSc all vs healthy proteins',
+    subtitle = 'Fibroblast differentially expressed genes labelled',
+    pCutoff = 0.05,
+    FCcutoff = 0.585,
+    xlim = c(min(proteomics_df[['logFC']], na.rm = TRUE), max(proteomics_df[['logFC']], na.rm = TRUE)),
+    ylim = c(0, max(-log10(proteomics_df[['P.Value']]), na.rm = TRUE)),
+    pointSize = 1.0,
+    labSize = 2.0,
+    labCol = 'grey14',
+    colAlpha = 4/5,
+    boxedLabels = T,
+    legendPosition = 'None',
+    drawConnectors = T,
+    widthConnectors = 0.6,
+    colConnectors = 'black',
+    max.overlaps = 20,
+    maxoverlapsConnectors = Inf)
+Fibroblast_overlap_volcano
+```
+
+```{r setup, include=FALSE}
+####next use SSc high
+proteomics_df <- read.csv('D:/Data/Data_drive/Data/IS_Protein_data/SSC_high_Healthy_allproteins.csv', row.names = 'Row.names')
+fibroblast_df <- read.csv('D:/Data/Data_drive/GSE138669_RAW/fibroblasts/DESeq2_fibroblasts.csv')
+colnames(fibroblast_df)[1] <- "EntrezGeneSymbol"
+fibroblast_df <- fibroblast_df %>% filter(baseMean >10)
+
+upregulated_fibroblast_df <- fibroblast_df %>% filter(log2FoldChange > 0 & padj <0.05)
+downregulated_fibroblast_df <- fibroblast_df %>% filter(log2FoldChange < 0 & padj <0.05)
+upregulated <- upregulated_fibroblast_df$EntrezGeneSymbol
+downregulated <- downregulated_fibroblast_df$EntrezGeneSymbol
+
+upregulated_proteomics <- proteomics_df %>%  filter(EntrezGeneSymbol %in% upregulated, P.Value <0.05, logFC >0)
+downregulated_proteomics <- proteomics_df %>%  filter(EntrezGeneSymbol %in% downregulated, P.Value <0.05, logFC <0)
+labels <- c(upregulated_proteomics$EntrezGeneSymbol,downregulated_proteomics$EntrezGeneSymbol)
+
+```
+
+```{r}
+proteomics_df <- proteomics_df %>%
+  mutate(labels = ifelse(
+    P.Value < 0.05 & (logFC > 0.585 | logFC < -0.585) & EntrezGeneSymbol %in% labels,
+    EntrezGeneSymbol, NA
+  ))
+Fibroblast_overlap_volcano <- EnhancedVolcano(data.frame(proteomics_df), x = 'logFC', y = 'P.Value',lab = proteomics_df$labels,selectLab = labels,
+    title = 'SSc high vs healthy proteins',
+    subtitle = 'Fibroblast differentially expressed genes labelled',
+    pCutoff = 0.05,
+    FCcutoff = 0.585,
+    xlim = c(min(proteomics_df[['logFC']], na.rm = TRUE), max(proteomics_df[['logFC']], na.rm = TRUE)),
+    ylim = c(0, max(-log10(proteomics_df[['P.Value']]), na.rm = TRUE)),
+    pointSize = 1.0,
+    labSize = 2.0,
+    labCol = 'grey14',
+    colAlpha = 4/5,
+    boxedLabels = T,
+    legendPosition = 'None',
+    drawConnectors = T,
+    widthConnectors = 0.6,
+    colConnectors = 'black',
+    max.overlaps = 20,
+    maxoverlapsConnectors = Inf)
+Fibroblast_overlap_volcano
+```
+
+```{r setup, include=FALSE}
+####next use SSc high
+proteomics_df <- read.csv('D:/Data/Data_drive/Data/IS_Protein_data/VEDOSS_Healthy_allproteins.csv', row.names = 'Row.names')
+fibroblast_df <- read.csv('D:/Data/Data_drive/GSE138669_RAW/fibroblasts/DESeq2_fibroblasts.csv')
+colnames(fibroblast_df)[1] <- "EntrezGeneSymbol"
+fibroblast_df <- fibroblast_df %>% filter(baseMean >10)
+
+upregulated_fibroblast_df <- fibroblast_df %>% filter(log2FoldChange > 0 & padj <0.05)
+downregulated_fibroblast_df <- fibroblast_df %>% filter(log2FoldChange < 0 & padj <0.05)
+upregulated <- upregulated_fibroblast_df$EntrezGeneSymbol
+downregulated <- downregulated_fibroblast_df$EntrezGeneSymbol
+
+upregulated_proteomics <- proteomics_df %>%  filter(EntrezGeneSymbol %in% upregulated, P.Value <0.05, logFC >0)
+downregulated_proteomics <- proteomics_df %>%  filter(EntrezGeneSymbol %in% downregulated, P.Value <0.05, logFC <0)
+labels <- c(upregulated_proteomics$EntrezGeneSymbol,downregulated_proteomics$EntrezGeneSymbol)
+
+```
+
+```{r}
+proteomics_df <- proteomics_df %>%
+  mutate(labels = ifelse(
+    P.Value < 0.05 & (logFC > 0.585 | logFC < -0.585) & EntrezGeneSymbol %in% labels,
+    EntrezGeneSymbol, NA
+  ))
+Fibroblast_overlap_volcano <- EnhancedVolcano(data.frame(proteomics_df), x = 'logFC', y = 'P.Value',lab = proteomics_df$labels,selectLab = labels,
+    title = 'VEDOSS vs healthy proteins',
+    subtitle = 'Fibroblast differentially expressed genes labelled',
+    pCutoff = 0.05,
+    FCcutoff = 0.585,
+    xlim = c(min(proteomics_df[['logFC']], na.rm = TRUE), max(proteomics_df[['logFC']], na.rm = TRUE)),
+    ylim = c(0, max(-log10(proteomics_df[['P.Value']]), na.rm = TRUE)),
+    pointSize = 1.0,
+    labSize = 2.0,
+    labCol = 'grey14',
+    colAlpha = 4/5,
+    boxedLabels = T,
+    legendPosition = 'None',
+    drawConnectors = T,
+    widthConnectors = 0.6,
+    colConnectors = 'black',
+    max.overlaps = 20,
+    maxoverlapsConnectors = Inf)
+Fibroblast_overlap_volcano
+```

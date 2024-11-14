@@ -1,0 +1,293 @@
+---
+title: "mrss_correlation_plots"
+output: html_document
+date: "2024-09-24"
+---
+
+```{r setup, include=FALSE}
+library(devtools)
+library(readat)
+library(SomaDataIO)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(readat)
+library(Biobase)
+library(limma)
+library(magrittr)
+library(tidyverse)
+library(reshape2)
+adat <- readAdat('D:/Data/Data_drive/Data/IS_Protein_data/SS-2342309_v4.1_other.hybNorm.medNormInt.plateScale.adat', keepOnlyPasses = T, keepOnlySamples = T, dateFormat = "%Y-%m-%d", verbose = getOption("verbose"))
+rownames(adat) <- adat$ExtIdentifier
+metadata <- read.csv(file ='D:/Data/Data_drive/Data/IS_Protein_data/somalogic_metadata.csv', row.names = 1)
+SampleDescription <- c("VEDOSS", "Healthy_abdo", "Healthy", "Healthy_abdo", "SSC_low", "SSC_high","SSC_low","SSC_high","Healthy_abdo","Healthy_abdo","VEDOSS","SSC_high","SSC_high","SSC_low","Healthy","VEDOSS", "Healthy_abdo","Healthy")
+adat$SampleDescription<- SampleDescription
+SampleGroup <- c("VEDOSS", "Healthy", "Healthy", "Healthy", "SSC","SSC", "SSC", "SSC","Health
+y","Healthy","VEDOSS","SSC","SSC","SSC","Healthy","VEDOSS", "Healthy","Healthy")
+adat$SampleGroup <- SampleGroup
+adat <- adat[!grepl("PSG", adat$SampleId), ]
+rownames(metadata) ==adat$ExtIdentifier
+metadata$Total_mRss
+adat$SampleNotes <- metadata$Total_mRss
+adat <- adat %>% rename( mrss = SampleNotes)
+
+seq_variance <- getSequenceData(adat)
+seq_variance <- seq_variance %>% filter(Organism=="Human"&Type=="Protein")
+melt_proteins <- melt(adat, na.rm = T)
+proteins_plot <- merge(melt_proteins, seq_variance)
+order <- c("Healthy", "VEDOSS","SSC_low","SSC_high")
+proteins_plot$SampleDescription <- factor(proteins_plot$SampleDescription, levels=order)
+somaEset <- soma2eset(adat)
+somaEset <- subset(somaEset, somaEset@featureData@data[["Organism"]] =="Human"& somaEset@featureData@data[["Type"]]=="Protein")
+protein_IDs <- as.data.frame(somaEset@featureData@data)
+```
+
+```{r}
+# Required libraries
+library(broom)
+library(dplyr)
+
+# Function to calculate R-squared, correlation, and p-value for each gene (SeqId)
+calc_r2_pvalue_correlation <- function(data) {
+  
+  # Initialize an empty list to store results for each gene
+  results <- list()
+  
+  # Iterate over each unique gene (SeqId)
+  for (gene in unique(data$SeqId)) {
+    
+    # Subset data for the current gene
+    gene_data <- data %>% filter(SeqId == gene)
+    
+    # Fit a linear model using Intensity as predictor and mrss as response
+    model <- lm(mrss ~ Intensity, data = gene_data)
+    
+    # Calculate Pearson correlation coefficient
+    correlation <- cor(gene_data$Intensity, gene_data$mrss, method = "pearson")
+    
+    # Extract R-squared and p-value from the model
+    tidy_model <- tidy(model)  # For p-value
+    glance_model <- glance(model)  # For R-squared
+    
+    # Store results in a list
+    results[[gene]] <- data.frame(
+      SeqId = gene,
+      Correlation = correlation,  # Pearson correlation coefficient (r)
+      R_squared = glance_model$r.squared,
+      P_value = tidy_model$p.value[2]  # p-value for the Intensity predictor
+    )
+  }
+  
+  # Combine all results into a single data frame
+  results_df <- do.call(rbind, results)
+  
+  return(results_df)
+}
+
+# Example usage:
+results_table <- calc_r2_pvalue_correlation(proteins_plot)
+
+# Print or plot the results
+ 
+results_table <- results_table %>% filter(P_value <0.05)
+correlation_dataframe <- results_table %>% left_join(protein_IDs, by = "SeqId") %>%  select(Correlation, R_squared, P_value, EntrezGeneSymbol, SeqId)
+```
+
+```{r}
+positive_correlations <- correlation_dataframe %>% filter(Correlation > 0) %>%  arrange(desc(R_squared)) %>% slice(1:10)
+negative_correlations <- correlation_dataframe %>% filter(Correlation < 0) %>%  arrange(desc(R_squared)) %>% slice(1:10)
+correlation_table <- cbind(positive_correlations,negative_correlations)
+write.csv(correlation_table, "D:/Data/Data_drive/Data/IS_Protein_data/correlative_proteins_mrss.csv")
+```
+
+```{r}
+library(ggpubr)
+library(ggpmisc)
+library(cowplot)
+
+CCL18 <- proteins_plot %>% 
+  subset(SeqId =="3044-3")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 5) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+
+
+HNRNPDL <- proteins_plot %>% 
+  subset(SeqId =="10852-114")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+
+TIMP1 <- proteins_plot %>% 
+  subset(SeqId =="25967-34")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+
+SFRP4 <- proteins_plot %>% 
+  subset(SeqId =="17447-52")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+
+SERPINE2 <- proteins_plot %>% 
+  subset(SeqId =="19154-41")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+
+INHBA <- proteins_plot %>% 
+  subset(SeqId =="19622-7")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+
+
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/MRSS_correlation_plots.png', width = 4750, height = 750, res = 300)
+plot_grid(CCL18,HNRNPDL,TIMP1,SFRP4,SERPINE2,INHBA, ncol=6,nrow = 1)
+```
+
+```{r}
+THBS1 <- proteins_plot %>% 
+  subset(SeqId =="3474-19")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/THBS_MRSS_correlation_plots.png', width = 750, height = 750, res = 300)
+THBS1
+INHBA <- proteins_plot %>% 
+  subset(SeqId =="19622-7")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/INHBA_MRSS_correlation_plots.png', width = 750, height = 750, res = 300)
+INHBA
+```
+
+```{r}
+###Becky's panel
+CCL2 <- proteins_plot %>% 
+  subset(SeqId =="2578-67")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/for_becky/CCL2_MRSS_correlation_plots.png', width = 750, height = 750, res = 300)
+CCL2
+dev.off()
+
+CXCL10 <- proteins_plot %>% 
+  subset(SeqId =="4141-79")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/for_becky/CXCL10_MRSS_correlation_plots.png', width = 750, height = 750, res = 300)
+CXCL10
+dev.off()
+
+CCL19 <- proteins_plot %>% 
+  subset(SeqId =="4922-13")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/for_becky/CCL19_MRSS_correlation_plots.png', width = 750, height = 750, res = 300)
+CCL19
+dev.off()
+
+CXCL9 <- proteins_plot %>% 
+  subset(SeqId =="11593-21")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/for_becky/CXCL9_MRSS_correlation_plots.png', width = 750, height = 750, res = 300)
+CXCL9
+dev.off()
+
+CXCL11 <- proteins_plot %>% 
+  subset(SeqId =="3038-9")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 3) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/for_becky/CXCL11_MRSS_correlation_plots.png', width = 750, height = 750, res = 300)
+CXCL11
+dev.off()
+CCL18 <- proteins_plot %>% 
+  subset(SeqId =="3044-3")%>% 
+  ggplot(aes(mrss, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 5) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Total mRSS")
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/for_becky/CCL18_MRSS_correlation_plots.png', width = 750, height = 750, res = 300)
+CCL18
+dev.off()
+```
+

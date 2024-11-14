@@ -1,0 +1,443 @@
+---
+title: "Differential protein expression using Limma"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(EnhancedVolcano)
+
+metadata <- read.csv(file ='D:/Data/Data_drive/Data/IS_Protein_data/somalogic_metadata.csv', row.names = 1)
+somaEset <- readRDS('D:/Data/Data_drive/Data/IS_Protein_data/somaEset.rds')
+normalised_expression <- as.data.frame(exprs(somaEset))
+protein_IDs <- as.data.frame(somaEset@featureData@data)
+proteins_plot <- read.csv('D:/Data/Data_drive/Data/IS_Protein_data/proteins_plot.csv', row.names = 1)
+
+```
+
+
+```{r}
+### lung fibrosis
+subset_metadata <- dplyr::filter(metadata, grepl("Scleroderma", category))
+subset_proteins <- normalised_expression[, colnames(normalised_expression) %in% rownames(subset_metadata)]
+design <- model.matrix(~ Lung_Fibrosis + 0, data = subset_metadata)
+colnames(design) <- c("No","Yes")
+contrastNames <- c("Yes - No")
+contrasts <- makeContrasts(contrasts = contrastNames, levels=design)
+limmaRes <- subset_proteins %>% lmFit(design = design)%>% contrasts.fit(contrasts) %>% eBayes()
+coeffs <- coefficients(limmaRes)
+
+stats_df <- topTable(limmaRes, number = nrow(subset_proteins))
+stats_df <- merge(stats_df, protein_IDs, by = "row.names")
+write.csv(stats_df, "D:/Data/Data_drive/Data/IS_Protein_data/SSc_lung_fibrosis_allproteins.csv")
+writeable_SSc_lung_fibrosis <- stats_df %>% filter( P.Value <0.05) %>% filter(logFC >0.585| logFC < -0.585) %>% select(SeqId, TargetFullName,Target,UniProt,EntrezGeneSymbol,logFC,AveExpr,P.Value)
+write.csv(writeable_SSc_lung_fibrosis, "D:/Data/Data_drive/Data/IS_Protein_data/SSc_lung_fibrosis.csv")
+
+stats_df <- stats_df %>%
+  arrange(P.Value) %>%
+  mutate(EntrezGeneSymbol = as.character(EntrezGeneSymbol),
+         label = ifelse(P.Value < 0.05 & EntrezGeneSymbol %in% head(EntrezGeneSymbol, 50), EntrezGeneSymbol, NA))
+
+writeable_SSc_lung_fibrosis %>%
+  summarise(
+    logFC_greater_than_0 = sum(logFC > 0),
+    logFC_less_than_0 = sum(logFC < 0))
+
+SSc_lung_fibrosis <- EnhancedVolcano(data.frame(stats_df), x = 'logFC', y = 'P.Value',lab = stats_df$label,selectLab = stats_df$label,
+    title = 'SSc Lung Fibrosis vs SSc no Lung Fibrosis proteins',
+    pCutoff = 0.05,
+    FCcutoff = 0.585,
+    xlim = c(min(stats_df[['logFC']], na.rm = TRUE), max(stats_df[['logFC']], na.rm = TRUE)),
+    ylim = c(0, max(-log10(stats_df[['P.Value']]), na.rm = TRUE)),
+    pointSize = 2.0,
+    labSize = 4.0,
+    labCol = 'grey14',
+    colAlpha = 4/5,
+    boxedLabels = T,
+    legendPosition = 'None',
+    legendLabSize = 8,
+    legendIconSize = 3.0,
+    drawConnectors = T,
+    widthConnectors = 0.6,
+    colConnectors = 'black',
+    max.overlaps = 20,
+    maxoverlapsConnectors = Inf)
+SSc_lung_fibrosis
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/SSc_lung_fibrosis_volcano.png', width = 3000, height = 2000, res = 300)
+SSc_lung_fibrosis
+
+```
+```{r}
+# Required libraries
+library(broom)
+library(dplyr)
+
+# Function to calculate R-squared, correlation, and p-value for each gene (SeqId)
+calc_r2_pvalue_correlation <- function(data) {
+  
+  # Initialize an empty list to store results for each gene
+  results <- list()
+  
+  # Iterate over each unique gene (SeqId)
+  for (gene in unique(data$SeqId)) {
+    
+    # Subset data for the current gene
+    gene_data <- data %>% filter(SeqId == gene)
+    
+    # Fit a linear model using Intensity as predictor and Lung_Fibrosis_binary as response
+    model <- lm(Lung_Fibrosis_binary ~ Intensity, data = gene_data)
+    
+    # Calculate Pearson correlation coefficient
+    correlation <- cor(gene_data$Intensity, gene_data$Lung_Fibrosis_binary, method = "pearson")
+    
+    # Extract R-squared and p-value from the model
+    tidy_model <- tidy(model)  # For p-value
+    glance_model <- glance(model)  # For R-squared
+    
+    # Store results in a list
+    results[[gene]] <- data.frame(
+      SeqId = gene,
+      Correlation = correlation,  # Pearson correlation coefficient (r)
+      R_squared = glance_model$r.squared,
+      P_value = tidy_model$p.value[2]  # p-value for the Intensity predictor
+    )
+  }
+  
+  # Combine all results into a single data frame
+  results_df <- do.call(rbind, results)
+  
+  return(results_df)
+}
+
+# Example usage:
+subset_proteins_plot <- proteins_plot %>% filter(SampleGroup =="SSC")
+results_table <- calc_r2_pvalue_correlation(subset_proteins_plot)
+
+# Print or plot the results
+ 
+results_table <- results_table %>% filter(P_value <0.05)
+correlation_dataframe <- results_table %>% left_join(protein_IDs, by = "SeqId") %>%  select(Correlation, R_squared, P_value, EntrezGeneSymbol, SeqId)
+```
+
+```{r}
+positive_correlations <- correlation_dataframe %>% filter(Correlation > 0) %>%  arrange(desc(R_squared)) %>% slice(1:10)
+negative_correlations <- correlation_dataframe %>% filter(Correlation < 0) %>%  arrange(desc(R_squared)) %>% slice(1:10)
+correlation_table <- full_join(positive_correlations,negative_correlations)
+write.csv(correlation_table, "D:/Data/Data_drive/Data/IS_Protein_data/correlative_proteins_lung_fibrosis.csv")
+```
+
+```{r}
+library(ggpubr)
+library(ggpmisc)
+library(cowplot)
+mat_colors <- c('turquoise2','red')
+
+SCUBE3 <- subset_proteins_plot  %>%
+  subset(SeqId == "16773-29") %>%  
+  ggplot(aes(Lung_Fibrosis, Intensity, label = SampleId))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+  scale_y_log10()+
+  geom_boxplot(fill = mat_colors)+
+  theme_bw() +
+  theme(legend.position = "top")+
+  labs(color = "Sample", x="Lung fibrosis")
+SCUBE3
+ELP1 <- subset_proteins_plot  %>%
+  subset(SeqId == "25102-23") %>%  
+  ggplot(aes(Lung_Fibrosis, Intensity, label = SampleId))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+  scale_y_log10()+
+  geom_boxplot(fill = mat_colors)+
+  theme_bw() +
+  theme(legend.position = "top")+
+  labs(color = "Sample", x="Lung fibrosis")
+ELP1
+
+SNTA1 <- subset_proteins_plot  %>%
+  subset(SeqId == "22946-55") %>%  
+  ggplot(aes(Lung_Fibrosis, Intensity, label = SampleId))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+  scale_y_log10()+
+  geom_boxplot(fill = mat_colors)+
+  theme_bw() +
+  theme(legend.position = "top")+
+  labs(color = "Sample", x="Lung fibrosis")
+SNTA1
+	
+HEXB <- subset_proteins_plot  %>%
+  subset(SeqId == "6075-61") %>%  
+  ggplot(aes(Lung_Fibrosis, Intensity, label = SampleId))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+  scale_y_log10()+
+  geom_boxplot(fill = mat_colors)+
+  theme_bw() +
+  theme(legend.position = "top")+
+  labs(color = "Sample", x="Lung fibrosis")
+HEXB
+	
+plot_grid(SCUBE3,ELP1,SNTA1,HEXB,ncol=4,nrow = 1)
+
+```
+
+```{r}
+### Immunosuppression
+subset_metadata <- dplyr::filter(metadata, grepl("Scleroderma", category))
+subset_proteins <- normalised_expression[, colnames(normalised_expression) %in% rownames(subset_metadata)]
+design <- model.matrix(~ Immunosupression_bin + 0, data = subset_metadata)
+colnames(design) <- c("No","Yes")
+contrastNames <- c("Yes - No")
+contrasts <- makeContrasts(contrasts = contrastNames, levels=design)
+limmaRes <- subset_proteins %>% lmFit(design = design)%>% contrasts.fit(contrasts) %>% eBayes()
+coeffs <- coefficients(limmaRes)
+
+stats_df <- topTable(limmaRes, number = nrow(subset_proteins))
+stats_df <- merge(stats_df, protein_IDs, by = "row.names")
+write.csv(stats_df, "D:/Data/Data_drive/Data/IS_Protein_data/SSc_immunosupressant_allproteins.csv")
+writeable_SSc_immunosupression <- stats_df %>% filter( P.Value <0.05) %>% filter(logFC >0.585| logFC < -0.585) %>% select(SeqId, TargetFullName,Target,UniProt,EntrezGeneSymbol,logFC,AveExpr,P.Value)
+write.csv(writeable_SSc_immunosupression, "D:/Data/Data_drive/Data/IS_Protein_data/SSc_immunosupressant.csv")
+
+stats_df <- stats_df %>%
+  arrange(P.Value) %>%
+  mutate(EntrezGeneSymbol = as.character(EntrezGeneSymbol),
+         label = ifelse(P.Value < 0.05 & EntrezGeneSymbol %in% head(EntrezGeneSymbol, 50), EntrezGeneSymbol, NA))
+
+writeable_SSc_immunosupression %>%
+  summarise(
+    logFC_greater_than_0 = sum(logFC > 0),
+    logFC_less_than_0 = sum(logFC < 0))
+
+SSc_immunosupression <- EnhancedVolcano(data.frame(stats_df), x = 'logFC', y = 'P.Value',lab = stats_df$label,selectLab = stats_df$label,
+    title = 'SSc Immunosupression vs SSc no Immunosupression',
+    pCutoff = 0.05,
+    FCcutoff = 0.585,
+    xlim = c(min(stats_df[['logFC']], na.rm = TRUE), max(stats_df[['logFC']], na.rm = TRUE)),
+    ylim = c(0, max(-log10(stats_df[['P.Value']]), na.rm = TRUE)),
+    pointSize = 2.0,
+    labSize = 4.0,
+    labCol = 'grey14',
+    colAlpha = 4/5,
+    boxedLabels = T,
+    legendPosition = 'None',
+    legendLabSize = 8,
+    legendIconSize = 3.0,
+    drawConnectors = T,
+    widthConnectors = 0.6,
+    colConnectors = 'black',
+    max.overlaps = 20,
+    maxoverlapsConnectors = Inf)
+SSc_immunosupression
+png(file='D:/Data/Data_drive/Data/IS_Protein_data/Tidied_scripts/plots/SSc_immunosupressant_volcano.png', width = 3000, height = 2000, res = 300)
+SSc_immunosupression
+
+```
+
+
+```{r}
+subset_proteins_plot <- proteins_plot  %>%  dplyr::filter(grepl("SSC", SampleGroup))
+
+CFDP1 <- subset_proteins_plot %>% 
+  subset(SeqId == "24706-73") %>%  
+  ggplot(aes(Immunosupression_bin, Intensity, label = SampleId))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+  scale_y_log10()+
+  geom_boxplot(fill = mat_colors)+
+  theme_bw() +
+  theme(legend.position = "top")+
+  labs(color = "Sample", x="Immunosupression")
+CFDP1
+
+KRT1 <- subset_proteins_plot %>% 
+  subset(SeqId == "9931-20") %>%  
+  ggplot(aes(Immunosupression_bin, Intensity, label = SampleId))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+  scale_y_log10()+
+  geom_boxplot(fill = mat_colors)+
+  theme_bw() +
+  theme(legend.position = "top")+
+  labs(color = "Sample", x="Immunosupression")
+KRT1
+```
+
+
+```{r}
+# Required libraries
+library(broom)
+library(dplyr)
+
+# Function to calculate R-squared, correlation, and p-value for each gene (SeqId)
+calc_r2_pvalue_correlation <- function(data) {
+  
+  # Initialize an empty list to store results for each gene
+  results <- list()
+  
+  # Iterate over each unique gene (SeqId)
+  for (gene in unique(data$SeqId)) {
+    
+    # Subset data for the current gene
+    gene_data <- data %>% filter(SeqId == gene)
+    
+    # Fit a linear model using Intensity as predictor and Local_skin_score as response
+    model <- lm(Local_skin_score ~ Intensity, data = gene_data)
+    
+    # Calculate Pearson correlation coefficient
+    correlation <- cor(gene_data$Intensity, gene_data$Local_skin_score, method = "pearson")
+    
+    # Extract R-squared and p-value from the model
+    tidy_model <- tidy(model)  # For p-value
+    glance_model <- glance(model)  # For R-squared
+    
+    # Store results in a list
+    results[[gene]] <- data.frame(
+      SeqId = gene,
+      Correlation = correlation,  # Pearson correlation coefficient (r)
+      R_squared = glance_model$r.squared,
+      P_value = tidy_model$p.value[2]  # p-value for the Intensity predictor
+    )
+  }
+  
+  # Combine all results into a single data frame
+  results_df <- do.call(rbind, results)
+  
+  return(results_df)
+}
+
+# Example usage:
+subset_proteins_plot <- proteins_plot %>% filter(SampleGroup =="SSC")
+results_table <- calc_r2_pvalue_correlation(subset_proteins_plot)
+
+# Print or plot the results
+ 
+results_table <- results_table %>% filter(P_value <0.05)
+correlation_dataframe <- results_table %>% left_join(protein_IDs, by = "SeqId") %>%  select(Correlation, R_squared, P_value, EntrezGeneSymbol, SeqId)
+```
+
+```{r}
+positive_correlations <- correlation_dataframe %>% filter(Correlation > 0) %>%  arrange(desc(R_squared)) %>% slice(1:10)
+negative_correlations <- correlation_dataframe %>% filter(Correlation < 0) %>%  arrange(desc(R_squared)) %>% slice(1:10)
+correlation_table <- full_join(positive_correlations,negative_correlations)
+write.csv(correlation_table, "D:/Data/Data_drive/Data/IS_Protein_data/correlative_proteins_local_skin_score.csv")
+```
+
+```{r}
+library(ggpubr)
+library(ggpmisc)
+library(cowplot)
+
+CHI3L1 <- subset_proteins_plot %>% 
+  subset(SeqId =="11104-13")%>% 
+  ggplot(aes(Local_skin_score, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 5) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Local mRSS")
+CHI3L1
+TPSAB1 <- subset_proteins_plot %>% 
+  subset(SeqId =="9409-11")%>% 
+  ggplot(aes(Local_skin_score, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 5) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Local mRSS")
+TPSAB1
+plot_grid(CHI3L1,TPSAB1,ncol=2,nrow = 1)
+
+```
+
+
+```{r}
+# Required libraries
+library(broom)
+library(dplyr)
+
+# Function to calculate R-squared, correlation, and p-value for each gene (SeqId)
+calc_r2_pvalue_correlation <- function(data) {
+  
+  # Initialize an empty list to store results for each gene
+  results <- list()
+  
+  # Iterate over each unique gene (SeqId)
+  for (gene in unique(data$SeqId)) {
+    
+    # Subset data for the current gene
+    gene_data <- data %>% filter(SeqId == gene)
+    
+    # Fit a linear model using Intensity as predictor and Disease_duration as response
+    model <- lm(Disease_duration ~ Intensity, data = gene_data)
+    
+    # Calculate Pearson correlation coefficient
+    correlation <- cor(gene_data$Intensity, gene_data$Disease_duration, method = "pearson")
+    
+    # Extract R-squared and p-value from the model
+    tidy_model <- tidy(model)  # For p-value
+    glance_model <- glance(model)  # For R-squared
+    
+    # Store results in a list
+    results[[gene]] <- data.frame(
+      SeqId = gene,
+      Correlation = correlation,  # Pearson correlation coefficient (r)
+      R_squared = glance_model$r.squared,
+      P_value = tidy_model$p.value[2]  # p-value for the Intensity predictor
+    )
+  }
+  
+  # Combine all results into a single data frame
+  results_df <- do.call(rbind, results)
+  
+  return(results_df)
+}
+
+# Example usage:
+subset_proteins_plot <- proteins_plot %>% filter(SampleGroup =="SSC")
+results_table <- calc_r2_pvalue_correlation(subset_proteins_plot)
+
+# Print or plot the results
+ 
+results_table <- results_table %>% filter(P_value <0.05)
+correlation_dataframe <- results_table %>% left_join(protein_IDs, by = "SeqId") %>%  select(Correlation, R_squared, P_value, EntrezGeneSymbol, SeqId)
+```
+
+```{r}
+positive_correlations <- correlation_dataframe %>% filter(Correlation > 0) %>%  arrange(desc(R_squared)) %>% slice(1:10)
+negative_correlations <- correlation_dataframe %>% filter(Correlation < 0) %>%  arrange(desc(R_squared)) %>% slice(1:10)
+correlation_table <- full_join(positive_correlations,negative_correlations)
+write.csv(correlation_table, "D:/Data/Data_drive/Data/IS_Protein_data/correlative_proteins_disease_duration.csv")
+```
+
+```{r}
+GPX1 <- subset_proteins_plot %>% 
+  subset(SeqId =="15591-28")%>% 
+  ggplot(aes(Disease_duration, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 5) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Disease Duration (Months)")
+GPX1
+
+PPP1R9B <- subset_proteins_plot %>% 
+  subset(SeqId =="21991-79")%>% 
+  ggplot(aes(Disease_duration, Intensity, label = SampleDescription))+
+  facet_wrap( ~ EntrezGeneSymbol)+
+   geom_point()+
+    geom_label(color = "black", show.legend = FALSE) +
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("R2", "p")), p.digits = 5) +
+  theme(legend.position = "none")+
+  labs( y = "",x="Disease Duration (Months)")
+PPP1R9B
+plot_grid(GPX1,PPP1R9B,ncol=2,nrow = 1)
+
+```
+
