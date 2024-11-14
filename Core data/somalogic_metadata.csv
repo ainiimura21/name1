@@ -1,0 +1,14 @@
+﻿ExtIdentifier,SubjectID,age,gender,combined,ANA,Centromere,SCL_70,RNA_Polymerase_3,Lung_Fibrosis_binary,Lung_Fibrosis,Total_mRss,Immunosupression_bin,Immunosupression,overall,category,condition,low_ssc,Disease_duration,Local_skin_score
+EXID40000009256847,COO-363,50,Female,50_F,1,0,1,0,0,No,0,No,0,Scleroderma,VEDOSS,VEDOSS,no,0,0
+EXID40000009257105,PDAR-0335,42,Female,42_F,0,0,0,0,0,No,0,No,0,Healthy,Healthy,Healthy,no,0,0
+EXID40000009257119,COO-005,51,Male,51_M,1,0,0,0,1,Yes,2,Yes,1,Scleroderma,Scleroderma,SSC_low,low,156,0
+EXID40000009257121,COO-429,70,Female,70_F,1,0,0,1,1,Yes,33,No,0,Scleroderma,Scleroderma,SSC_high,no,0,2
+EXID40000009257122,COO-425,78,Female,78_F,1,0,1,0,1,Yes,18,Yes,1,Scleroderma,Scleroderma,SSC_low,low,60,1
+EXID40000009257123,COO-426,43,Male,43_M,1,0,1,0,0,No,13,Yes,1,Scleroderma,Scleroderma,SSC_high,no,8,2
+EXID40000009257142,COO-424,43,Female,43_F,1,1,0,0,0,No,0,No,0,Scleroderma,VEDOSS,VEDOSS,no,0,0
+EXID40000009257146,COO-373,45,Female,45_F,1,0,1,0,1,Yes,15,Yes,1,Scleroderma,Scleroderma,SSC_high,no,36,2
+EXID40000009257147,COO-428,56,Female,56_F,1,0,0,0,0,No,14,Yes,1,Scleroderma,Scleroderma,SSC_high,no,6,2
+EXID40000009257149,COO-403,37,Male,37_M,1,0,1,0,0,No,8,No,0,Scleroderma,Scleroderma,SSC_low,low,2,1
+EXID40000009257253,PDAR-0343,36,Female,36_F,0,0,0,0,0,No,0,No,0,Healthy,Healthy,Healthy,no,0,0
+EXID40000009257257,COO-180,57,Female,57_F,1,0,1,0,0,No,0,No,0,Scleroderma,VEDOSS,VEDOSS,no,0,0
+EXID40000009257261,PDAR-0344,44,Female,44_F,0,0,0,0,0,No,0,No,0,Healthy,Healthy,Healthy,no,0,0
