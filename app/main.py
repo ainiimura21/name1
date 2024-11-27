@@ -31,14 +31,14 @@ def main():
             st.error("Please enter a valid Protein ID.")
         else:
             try:
-                # Filter the data
-                filtered_data = filter_data(proteins, protein_id, id_type)
+                # Filter the data and get corresponding metadata
+                filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
 
                 # Get the protein name for the title
                 protein_name = filtered_data["TargetFullName"].iloc[0]
 
                 # Generate and display the plot
-                plt = plot_correlation(filtered_data, protein_name)
+                plt = plot_correlation(filtered_data, metadata_info, protein_name)
                 st.pyplot(plt)
             except ValueError as e:
                 st.error(str(e))
