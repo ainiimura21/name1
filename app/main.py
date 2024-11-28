@@ -2,35 +2,54 @@ import streamlit as st
 from Correlation import load_data, filter_data, plot_correlation
 
 # Paths to the data files
-METADATA_PATH = "Core Data/somalogic_metadata.csv"
-PROTEINS_PATH = "Core Data/proteins_plot.csv"
+METADATA_PATH = "../Core data/somalogic_metadata.csv"
+PROTEINS_PATH = "../Core data/proteins_plot.csv"
 
 @st.cache_data
 def get_data():
     metadata, proteins = load_data(METADATA_PATH, PROTEINS_PATH)
     return metadata, proteins
 
-
 def main():
-    st.title("MRSS vs Intensity Correlation")
 
-    # Load the data
-    metadata, proteins = get_data()
+    st.markdown("""
+        <style>
+            .title {
+                font-size: 50px;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 50px;
+                margin-left: -40%;
+                margin-right: -40%;
+                color: #FFA500;
+            }
+        </style>
+        <div class="title">
+            Monitoring Progression of Scleroderma
+        </div>
+    """, unsafe_allow_html=True)
 
-    # Sidebar for user input
-    st.sidebar.header("Protein Selection")
-    id_type = st.sidebar.selectbox(
+    # st.title("Developing a client-server database-backed app for monitoring progression of scleroderma")
+    
+    # Custom layout to simulate a sidebar below the title
+    st.header("MRSS vs Intensity Correlation")
+
+    # Sidebar can be placed within the main layout using st.selectbox and st.text_input
+    id_type = st.selectbox(
         "Select Protein Reference Type:",
         ["TargetFullName", "Target", "EntrezGeneID", "EntrezGeneSymbol"]
     )
-    protein_id = st.sidebar.text_input("Enter Protein ID:")
+    protein_id = st.text_input("Enter Protein ID:")
 
     # Button to trigger plot generation
-    if st.sidebar.button("Plot Correlation"):
+    if st.button("Plot Correlation"):
         if not protein_id:
             st.error("Please enter a valid Protein ID.")
         else:
             try:
+                # Load the data
+                metadata, proteins = get_data()
+
                 # Filter the data and get corresponding metadata
                 filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
 
@@ -44,7 +63,6 @@ def main():
                 st.error(str(e))
             except KeyError as e:
                 st.error(f"Column Error: {e}")
-
 
 if __name__ == "__main__":
     main()
