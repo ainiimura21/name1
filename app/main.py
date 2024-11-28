@@ -12,27 +12,46 @@ def get_data():
 
 def main():
 
+# Add custom CSS to centre the image horizontally
+    st.image("../images/sclerd.png")
+
+
     st.markdown("""
-        <style>
-            .title {
-                font-size: 50px;
-                font-weight: bold;
-                text-align: center;
-                margin-bottom: 50px;
-                margin-left: -40%;
-                margin-right: -40%;
-                color: #FFA500;
-            }
-        </style>
-        <div class="title">
-            Monitoring Progression of Scleroderma
-        </div>
+    <style>
+        .title {
+            font-size: 50px;
+            font-weight: bold;
+            text-align: center;
+            margin-left: -40%;
+            margin-right: -40%;
+        }
+        .subtitle {
+            font-size: 30px;
+            font-weight: normal;
+            text-align: center;
+            color: grey;
+            margin-bottom: 10%;
+        }
+    </style>
+    <div class="title">
+        Monitoring Progression of Scleroderma
+    </div>
+    <div class="subtitle">
+        Higgins Lab Imperial College
+    </div>
     """, unsafe_allow_html=True)
+
+
 
     # st.title("Developing a client-server database-backed app for monitoring progression of scleroderma")
     
     # Custom layout to simulate a sidebar below the title
-    st.header("MRSS vs Intensity Correlation")
+    st.markdown("""
+        <h2 style='color: #CC5500;'>
+            MRSS vs Intensity Correlation
+        </h2>
+    """, unsafe_allow_html=True)
+
 
     # Sidebar can be placed within the main layout using st.selectbox and st.text_input
     id_type = st.selectbox(
