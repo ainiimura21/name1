@@ -1,0 +1,61 @@
+Summary of the MRSS vs Intensity Correlation Plot Implementation
+Overview:
+We implemented a Streamlit app that generates a MRSS (Modified Rodnan Skin Score) vs Intensity scatter plot with the following features:
+
+Logarithmic Intensity (Y-axis) vs Linear MRSS (X-axis).
+Points are color-coded by SampleGroup (e.g., Healthy, SSC_low, SSC_high, VEDOSS).
+Annotations on each point display the SampleGroup.
+Title dynamically updates with the selected protein's name.
+Data Sources:
+proteins_plot.csv
+
+Relevant Columns:
+mrss: MRSS score for each patient.
+Intensity: Protein-specific intensity values.
+SampleGroup: Sample classification (e.g., Healthy, SSC_high).
+TargetFullName, Target, EntrezGeneID, EntrezGeneSymbol: Protein identifiers.
+Each row represents a specific protein measurement for a specific patient.
+somalogic_metadata.csv
+
+Provides metadata about patients.
+Shared SubjectID column allows linking to proteins_plot.csv.
+Core Features Implemented:
+Data Loading:
+
+CSV files are loaded via pandas.
+Cached using st.cache_data for performance optimization.
+Dynamic Protein Filtering:
+
+User can filter data by selecting a Protein Reference Type (TargetFullName, Target, EntrezGeneID, EntrezGeneSymbol) and entering a specific ID.
+The app validates the input and retrieves corresponding rows from proteins_plot.csv.
+Scatter Plot:
+
+X-axis: MRSS values (mrss column).
+Y-axis: Log-transformed Intensity values (Intensity column).
+Color-Coded Groups: Based on SampleGroup.
+Each point is annotated with its SampleGroup for clarity.
+Uses Seaborn for a polished visualization.
+Dynamic Title:
+
+The plot's title reflects the selected protein name (from TargetFullName).
+Error Handling:
+Displays errors if:
+The user enters an invalid protein ID.
+The selected column doesn't exist in the data.
+No data is found for the given filter.
+Code Structure:
+Correlation.py:
+
+load_data: Loads data from the CSV files.
+filter_data: Filters data based on user input (Protein ID and Reference Type).
+plot_correlation: Generates the MRSS vs Intensity plot.
+main.py:
+
+Provides the Streamlit interface.
+Allows user input for Protein ID and Reference Type.
+Displays the correlation plot using Correlation.py.
+Future Improvements or Extensions:
+Add interactive options for customizing the plot (e.g., select Y-axis scale).
+Incorporate statistical metrics (e.g., correlation coefficient) into the visualization.
+Include additional plots (e.g., heatmaps, boxplots) for protein analysis.
+Improve performance for large datasets (e.g., by preloading a database).
