@@ -3,24 +3,15 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
-def load_data(metadata_path, proteins_path):
-    """
-    Load metadata and protein data from the provided file paths.
-    """
+def load_data_bp(metadata_path, proteins_path):
     metadata = pd.read_csv(metadata_path)
     proteins = pd.read_csv(proteins_path)
     return metadata, proteins
 
-
-def filter_data(proteins, metadata, protein_id, id_type):
-    """
-    Filter the proteins data for a specific protein ID based on the ID type
-    and retrieve corresponding metadata information.
-    """
+def filter_databp(proteins, metadata, protein_id, id_type):
     valid_columns = {
-        "TargetFullName": "TargetFullName", #SSC all healthy all proteins
-        "Target": "Target", #SSC all healthy all proteins
+        "TargetFullName": "TargetFullName",
+        "Target": "Target",
         "EntrezGeneID": "EntrezGeneID",
         "EntrezGeneSymbol": "EntrezGeneSymbol"
     }
@@ -58,9 +49,7 @@ def filter_data(proteins, metadata, protein_id, id_type):
 
     return filtered_data, metadata_info
 
-
-
-def plot_correlation(filtered_data, metadata_info, protein_name):
+def plot_boxplot(filtered_data, metadata_info, protein_name):
     """
     Create a scatter plot of MRSS (linear scale) vs Intensity (logarithmic scale)
     with condition-specific colors for points and tags.
@@ -125,6 +114,3 @@ def plot_correlation(filtered_data, metadata_info, protein_name):
     plt.tight_layout()
 
     return plt
-
-
-
