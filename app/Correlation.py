@@ -21,8 +21,8 @@ def filter_data(proteins, metadata, protein_id, id_type):
     valid_columns = {
         "TargetFullName": "TargetFullName",
         "Target": "Target",
-        "EntrezGeneID": "EntrezGeneID",
-        "EntrezGeneSymbol": "EntrezGeneSymbol"
+        "GeneID": "EntrezGeneID",
+        "GeneSymbol": "EntrezGeneSymbol"
     }
 
     if id_type not in valid_columns:
