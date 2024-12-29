@@ -1,18 +1,25 @@
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
 from Correlation import load_data, filter_data, plot_correlation
 from boxplot import plot_boxplot
+from volcano import plot_volcano
 
 # Paths to the data files
-METADATA_PATH = "Core data/somalogic_metadata.csv"
-PROTEINS_PATH = "Core data/proteins_plot.csv"
+METADATA_PATH = "../Core data/somalogic_metadata.csv"
+PROTEINS_PATH = "../Core data/proteins_plot.csv"
+VOLCANO_PATH = "../Core data/SSC_all_Healthy_allproteins.csv"
 
 @st.cache_data
 def get_data():
-    metadata, proteins = load_data(METADATA_PATH, PROTEINS_PATH)
-    return metadata, proteins
+    """Load and cache metadata and protein data."""
+    metadata, proteins = load_data(METADATA_PATH, PROTEINS_PATH)  # Load only the first two datasets
+    volcano = pd.read_csv(VOLCANO_PATH)  # Load the volcano dataset separately
+    return metadata, proteins, volcano
 
 def main():
-
+    """Main function to run the Streamlit app."""
+    # Header Section
     st.markdown("""
     <style>
         .title {
@@ -38,6 +45,7 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
+    # Section Title
     st.markdown("""
         <h2 style='color: #CC5500;'>
             MRSS vs Intensity Analysis
@@ -58,7 +66,7 @@ def main():
         else:
             try:
                 # Load the data
-                metadata, proteins = get_data()
+                metadata, proteins, volcano = get_data()
 
                 # Filter the data and get corresponding metadata
                 filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
@@ -76,10 +84,18 @@ def main():
                 box_plot = plot_boxplot(filtered_data, metadata_info, protein_name)
                 st.pyplot(box_plot)
 
+                # Volcano Plot Section
+                st.subheader(f"Volcano Plot")
+                st.markdown("Displaying a volcano plot for the provided dataset.")
+                volcano_plot = plot_volcano(volcano)  # Pass full volcano data
+                st.pyplot(volcano_plot)
+
             except ValueError as e:
-                st.error(str(e))
+                st.error(f"Value Error: {str(e)}. Please check the input values or dataset.")
             except KeyError as e:
-                st.error(f"Column Error: {e}")
+                st.error(f"Key Error: Missing column in the data - {e}. Please verify the dataset structure.")
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {str(e)}.")
 
 if __name__ == "__main__":
     main()
