@@ -1,3 +1,4 @@
+#Interferon regulatory factor 6
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -6,9 +7,9 @@ from boxplot import plot_boxplot
 from volcano import plot_volcano
 
 # Paths to the data files
-METADATA_PATH = "../Core data/somalogic_metadata.csv"
-PROTEINS_PATH = "../Core data/proteins_plot.csv"
-VOLCANO_PATH = "../Core data/SSC_all_Healthy_allproteins.csv"
+METADATA_PATH = "./Core data/somalogic_metadata.csv"
+PROTEINS_PATH = "./Core data/proteins_plot.csv"
+VOLCANO_PATH = "./Core data/SSC_all_Healthy_allproteins.csv"
 
 # Set page configuration
 st.set_page_config(layout="wide")  # Wide layout to avoid the sidebar
@@ -90,16 +91,28 @@ def home():
                 filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
                 protein_name = filtered_data["TargetFullName"].iloc[0]
 
-                st.subheader(f"Correlation Plot for {protein_name}")
-                st.pyplot(plot_correlation(filtered_data, metadata_info, protein_name))
-
-                st.subheader(f"Box Plot for {protein_name}")
-                st.pyplot(plot_boxplot(filtered_data, metadata_info, protein_name))
-
-                st.subheader(f"Volcano Plot")
-                st.markdown("Displaying a volcano plot for the provided dataset.")
-                st.pyplot(plot_volcano(volcano))
-
+                # Add tabs and generate plot on each one
+                corr_tab, box_tab, volc_tab = st.tabs(['Correlation Plot', 'Box Plot', 'Volcano Plot'])
+                with corr_tab:
+                    # Generate and display the correlation plot
+                    st.subheader(f"Correlation Plot for {protein_name}")
+                    corr_plot = plot_correlation(filtered_data, metadata_info, protein_name)
+                    st.pyplot(corr_plot)
+                with box_tab:
+                    # Generate and display the boxplot
+                    st.subheader(f"Box Plot for {protein_name}")
+                    box_plot = plot_boxplot(filtered_data, metadata_info, protein_name)
+                    st.pyplot(box_plot)
+                with volc_tab:
+                    # Volcano Plot Section
+                    st.subheader(f"Volcano Plot")
+                    st.markdown("Displaying a volcano plot for the provided dataset.")
+                    volcano_plot = plot_volcano(volcano)  # Pass full volcano data
+                    st.pyplot(volcano_plot)
+            except ValueError as e:
+                st.error(f"Value Error: {str(e)}. Please check the input values or dataset.")
+            except KeyError as e:
+                st.error(f"Key Error: Missing column in the data - {e}. Please verify the dataset structure.")
             except Exception as e:
                 st.error(f"An unexpected error occurred: {str(e)}.")
 
