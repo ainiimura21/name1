@@ -55,9 +55,10 @@ def plot_boxplot(filtered_data, metadata_info, protein_name):
     # Set title and labels
     plt.title(f"Box Plot {protein_name}", fontsize=16)
     plt.xlabel("MRSS (Linear Scale)", fontsize=12)
+    plt.xticks([1,2,3,4], ['Healthy', 'VEDOSS', 'SSC_low', 'SSC_high'])
     plt.ylabel("Intensity", fontsize=12)
     plt.grid(visible=True, linestyle="--", alpha=0.6)
-    plt.legend(title="Condition", loc="best")
+
     plt.tight_layout()
 
     return plt
