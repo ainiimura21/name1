@@ -56,7 +56,7 @@ on the plot.
 
 2. Install dependencies:
 ```bash
-pip install numpy pandas matplotlib seaborn streamlit
+pip install numpy pandas matplotlib seaborn streamlit scanpy
  ```
 
 ## Usage
