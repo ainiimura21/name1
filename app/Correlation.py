@@ -146,7 +146,7 @@ def plot_correlation(filtered_data, metadata_info, protein_name):
     y_max = intensity.max() * 1.2
     ax.set_ylim(bottom=y_min, top=y_max)
 
-    # Configure log ticks and formatter for y-axis
+    # Configure log ticks and formatter for y-axis (fixing log10 display issues)
     ax.yaxis.set_major_locator(LogLocator(base=10.0, subs=None, numticks=10))
     ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10) * 0.1, numticks=10))
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{int(x):g}" if x >= 1 else f"{x:.1g}"))

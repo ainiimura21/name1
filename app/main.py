@@ -10,7 +10,6 @@ METADATA_PATH = "./Core data/somalogic_metadata.csv"
 PROTEINS_PATH = "./Core data/proteins_plot.csv"
 VOLCANO_PATH = "./Core data/SSC_all_Healthy_allproteins.csv"
 
-@st.cache_data
 def get_data():
     """Load and cache metadata and protein data."""
     metadata, proteins = load_data(METADATA_PATH, PROTEINS_PATH)  # Load only the first two datasets
