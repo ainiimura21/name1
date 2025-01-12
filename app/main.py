@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from Correlation import load_data, filter_data, plot_correlation
+from dataloader import load_data, filter_data
+from Correlation import plot_correlation
 from boxplot import plot_boxplot
 from volcano import plot_volcano
 
@@ -69,22 +70,22 @@ def main():
                 metadata, proteins, volcano = get_data()
 
                 # Filter the data and get corresponding metadata
-                filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
+                merged_data = filter_data(proteins, metadata, protein_id, id_type)
 
                 # Get the protein name for the title
-                protein_name = filtered_data["TargetFullName"].iloc[0]
+                protein_name = merged_data["TargetFullName"].iloc[0]
 
                 # Add tabs and generate plot on each one
                 corr_tab, box_tab, volc_tab = st.tabs(['Correlation Plot', 'Box Plot', 'Volcano Plot'])
                 with corr_tab:
                     # Generate and display the correlation plot
                     st.subheader(f"Correlation Plot for {protein_name}")
-                    corr_plot = plot_correlation(filtered_data, metadata_info, protein_name)
+                    corr_plot = plot_correlation(merged_data, protein_name)
                     st.pyplot(corr_plot)
                 with box_tab:
                     # Generate and display the boxplot
                     st.subheader(f"Box Plot for {protein_name}")
-                    box_plot = plot_boxplot(filtered_data, metadata_info, protein_name)
+                    box_plot = plot_boxplot(merged_data, protein_name)
                     st.pyplot(box_plot)
                 with volc_tab:
                     # Volcano Plot Section

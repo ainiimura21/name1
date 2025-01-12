@@ -2,26 +2,13 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from dataloader import load_data, filter_data
 
-
-def plot_boxplot(filtered_data, metadata_info, protein_name):
+def plot_boxplot(merged_data, protein_name):
     """
-    Create a scatter plot of MRSS (linear scale) vs Intensity (logarithmic scale)
-    with condition-specific colors for points and tags.
+    Create a boxplot of the intensity of 4 Scleroderma categories
     """
-    # Merge filtered_data with metadata_info on SampleId
-    merged_data = pd.merge(
-        filtered_data,
-        metadata_info,
-        left_on="SampleId",
-        right_on="SubjectID",
-        how="inner"
-    )
-
-    # Debug: Print merged data
-    print("Merged Data:")
-    print(merged_data.head())
-
+    merged_data = merged_data
     # Create 4 sub columns 
     data_healthy = merged_data[merged_data['condition']== "Healthy"]
     data_VEDOSS =merged_data[merged_data['condition']==  "VEDOSS"]
