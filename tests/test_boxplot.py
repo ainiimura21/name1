@@ -16,12 +16,12 @@ class TestPlotBoxplot(unittest.TestCase):
         # Test metadata dataset
         self.metadata_info = pd.DataFrame({
             "SubjectID": [1, 2, 3, 4],
-            "OtherInfo": ["Info1", "Info2", "Info3", "Info4"]
+            "OtherColumn": ["A", "B", "C", "D"]
         })
 
         self.protein_name = "Test Protein"
 
-    @patch("matplotlib.pyplot.show")  # Mock plt.show to prevent rendering
+    @patch("matplotlib.pyplot.show")
     def test_plot_boxplot(self, mock_show):
         # Run the function
         result = plot_boxplot(self.filtered_data, self.metadata_info, self.protein_name)
@@ -29,15 +29,21 @@ class TestPlotBoxplot(unittest.TestCase):
         # Validate that plt.show() was called once
         mock_show.assert_called_once()
 
-        self.assertIsInstance(result, MagicMock)
+        # Validate that the function returns matplotlib.pyplot
+        self.assertIs(result, plt)
 
-    @patch("matplotlib.pyplot.Figure.add_axes")  # Mock plt.Figure.add_axes
-    def test_custom_palette_assignment(self, mock_add_axes):
+    @patch("matplotlib.pyplot.subplots")  # Mock plt.subplots
+    def test_custom_palette_assignment(self, mock_subplots):
+        # Mock the return value of plt.subplots
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_subplots.return_value = (mock_fig, mock_ax)
+
         # Run the function
         plot_boxplot(self.filtered_data, self.metadata_info, self.protein_name)
 
-        # Validate that add_axes was called
-        mock_add_axes.assert_called_once_with([0, 0, 1, 1])
+        # Validate that plt.subplots was called
+        mock_subplots.assert_called_once_with(figsize=(10, 7))
 
     def test_data_merge(self):
         # Check if merged data is correct
