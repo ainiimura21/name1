@@ -1,102 +1,283 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from pathlib import Path
+
 from Correlation import load_data, filter_data, plot_correlation
 from boxplot import plot_boxplot
 from volcano import plot_volcano
 
-# Paths to the data files
-METADATA_PATH = "./Core data/somalogic_metadata.csv"
-PROTEINS_PATH = "./Core data/proteins_plot.csv"
-VOLCANO_PATH = "./Core data/SSC_all_Healthy_allproteins.csv"
+# Get current file path
+BASE_PATH = Path(__file__).parent
 
+# Construct paths
+METADATA_PATH = str(BASE_PATH.parent / "Core data/somalogic_metadata.csv")
+PROTEINS_PATH = str(BASE_PATH.parent / "Core data/proteins_plot.csv")
+VOLCANO_PATH = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
+
+# Set page configuration
+st.set_page_config(
+    page_title="ScleroBase",  
+    page_icon="🧬", 
+    layout="wide",
+    initial_sidebar_state="collapsed"  
+)
+
+# Add custom fonts from Google Fonts
+st.markdown("""
+    <link href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400&family=Actor&display=swap" rel="stylesheet">
+    <style>
+        /* Hide the Streamlit default elements */
+        #MainMenu {visibility: hidden;} 
+        footer {visibility: hidden;}
+        header {visibility: hidden;} 
+        .css-1e5imcs, .css-17eq0hr {display: none !important;}
+
+        .navbar {
+            background-color: #2E7D32;  /* Green background */
+            padding: 10px 20px;
+            font-size: 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100vw;  /* Full width of the viewport */
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;  /* Ensure navbar stays above other elements */
+        }
+        .navbar a {
+            color: white;
+            padding: 30px 30px;
+            text-decoration: none;
+            font-weight: normal; 
+            font-size: 18px; 
+        }
+        .navbar a:hover {
+            background-color: #1B5E20;  /* Darker green background on hover */
+            color: white;  /* Keep the text white */
+        }
+        .brand {
+            font-family: 'MuseoModerno', cursive;  /* Updated to MuseoModerno */
+            font-size: 42px;  /* Brand name size */
+            font-weight: 400;
+            color: white;
+            padding-left: 60px;
+        }
+            
+        /* Mobile-specific styles */
+        @media screen and (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 5px 10px;
+            }
+            .navbar a {
+                font-size: 14px;
+                padding: 8px 15px;
+                width: 100%;  /* Full width on small screens */
+                text-align: center;
+            }
+            .brand {
+                font-size: 24px;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+@st.cache_data
 def get_data():
     """Load and cache metadata and protein data."""
-    metadata, proteins = load_data(METADATA_PATH, PROTEINS_PATH)  # Load only the first two datasets
+    metadata, proteins = load_data(METADATA_PATH, PROTEINS_PATH)
     volcano = pd.read_csv(VOLCANO_PATH)  # Load the volcano dataset separately
     return metadata, proteins, volcano
 
-def main():
-    """Main function to run the Streamlit app."""
-    # Header Section
-    st.markdown("""
-    <style>
-        .title {
-            font-size: 50px;
-            font-weight: bold;
-            text-align: center;
-            margin-left: -40%;
-            margin-right: -40%;
+def home():
+    """Home page with plots and analysis."""
+  
+    if "protein_options" not in st.session_state:
+    # Load and cache data
+        metadata, proteins, _ = get_data()
+        st.session_state["protein_options_map"] = {
+            "EntrezGeneID": proteins["EntrezGeneID"].dropna().unique().tolist(),
+            "EntrezGeneSymbol": proteins["EntrezGeneSymbol"].dropna().unique().tolist(),
+            "TargetFullName": proteins["TargetFullName"].dropna().unique().tolist(),
+            "Target": proteins["Target"].dropna().unique().tolist(),
         }
-        .subtitle {
-            font-size: 30px;
-            font-weight: normal;
-            text-align: center;
-            color: grey;
-            margin-bottom: 10%;
-        }
-    </style>
-    <div class="title">
-        Monitoring Progression of Scleroderma
-    </div>
-    <div class="subtitle">
-        Higgins Lab Imperial College
-    </div>
-    """, unsafe_allow_html=True)
+    
+    def generate_and_display_plots(button_name, id_type, protein_id, button_key):
 
-    # Section Title
-    st.markdown("""
-        <h2 style='color: #CC5500;'>
-            MRSS vs Intensity Analysis
-        </h2>
-    """, unsafe_allow_html=True)
+        # Button for generating plots
+        if st.button(button_name, key=button_key):
+            st.session_state["active_button"] = button_key  # Track which button was clicked
+            if not protein_id:
+                st.error("Please enter a valid Protein ID.")
+            else:
+                try:
+                    # Load data and cache in session state
+                    metadata, proteins, volcano = get_data()
+                    filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
+                    protein_name = filtered_data["TargetFullName"].iloc[0]
 
-    # Sidebar for user input
-    id_type = st.selectbox(
-        "Select Protein Reference Type:",
-        ["TargetFullName", "Target", "EntrezGeneID", "EntrezGeneSymbol"]
-    )
-    protein_id = st.text_input("Enter Protein ID:")
+                    # Store data in session state
+                    st.session_state["plot_data"] = {
+                        "filtered_data": filtered_data,
+                        "metadata_info": metadata_info,
+                        "protein_name": protein_name,
+                        "volcano_plot_data": volcano
+                    }
 
-    # Button to trigger plot generation
-    if st.button("Generate Plots"):
-        if not protein_id:
-            st.error("Please enter a valid Protein ID.")
-        else:
+                except Exception as e:
+                    st.error(f"An unexpected error occurred: {str(e)}.")
+                    st.session_state["active_button"] = None
+
+        # Only display plots if the current button is active
+        if st.session_state.get("active_button") == button_key:
             try:
-                # Load the data
-                metadata, proteins, volcano = get_data()
+                data = st.session_state["plot_data"]
+                protein_name = data["protein_name"]
+                filtered_data = data["filtered_data"]
+                metadata_info = data["metadata_info"]
+                volcano = data["volcano_plot_data"]
 
-                # Filter the data and get corresponding metadata
-                filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
-
-                # Get the protein name for the title
-                protein_name = filtered_data["TargetFullName"].iloc[0]
-
-                # Add tabs and generate plot on each one
+                # Add tabs and display plots
                 corr_tab, box_tab, volc_tab = st.tabs(['Correlation Plot', 'Box Plot', 'Volcano Plot'])
                 with corr_tab:
-                    # Generate and display the correlation plot
                     st.subheader(f"Correlation Plot for {protein_name}")
                     corr_plot = plot_correlation(filtered_data, metadata_info, protein_name)
                     st.pyplot(corr_plot)
+
                 with box_tab:
-                    # Generate and display the boxplot
                     st.subheader(f"Box Plot for {protein_name}")
                     box_plot = plot_boxplot(filtered_data, metadata_info, protein_name)
                     st.pyplot(box_plot)
+
                 with volc_tab:
-                    # Volcano Plot Section
                     st.subheader(f"Volcano Plot")
                     st.markdown("Displaying a volcano plot for the provided dataset.")
-                    volcano_plot = plot_volcano(volcano)  # Pass full volcano data
+                    volcano_plot = plot_volcano(volcano)
                     st.pyplot(volcano_plot)
-            except ValueError as e:
-                st.error(f"Value Error: {str(e)}. Please check the input values or dataset.")
-            except KeyError as e:
-                st.error(f"Key Error: Missing column in the data - {e}. Please verify the dataset structure.")
+
             except Exception as e:
-                st.error(f"An unexpected error occurred: {str(e)}.")
+                st.error(f"An error occurred while displaying the plots: {str(e)}")
+
+
+
+    #Dropdown box
+    col1, col2 = st.columns([2, 2])  # Two equal-width columns (1:1)
+    with col1:
+        id_type = st.selectbox(
+            "Select Protein Reference Type:",
+            ["EntrezGeneID", "EntrezGeneSymbol", "TargetFullName", "Target"]
+        )
+        
+        # Update the options based on the selected reference type
+        protein_options = st.session_state["protein_options_map"][id_type]
+
+        # Create an autocomplete selectbox for protein ID suggestions
+        protein_id = st.selectbox(
+            "Enter or select Protein ID:",
+            options=[""] + protein_options,  # Add an empty default option for manual input
+            index=0,
+            help=f"Select or type a valid {id_type} from the dataset."
+        )
+
+        generate_and_display_plots("Generate Plots", id_type, protein_id, "generate_plots_button")
+
+
+
+    # Initialize session state keys if they don't exist
+    if "selected_proteins" not in st.session_state:
+        st.session_state["selected_proteins"] = []
+
+    if "show_comparison" not in st.session_state:
+        st.session_state["show_comparison"] = False
+
+    # Control variable to check if "Generate Plots" has been clicked
+    if "generate_plots_clicked" not in st.session_state:
+        st.session_state["generate_plots_clicked"] = False
+
+
+    with col2:
+        selected_protein = st.selectbox(
+            "Selected Proteins for Comparison:",
+            options=st.session_state.get("selected_proteins", []),
+            index=0 if st.session_state.get("selected_proteins") else -1,  # Default to first item or empty
+            help="Select a protein to view detailed information."
+        )
+
+        # "Compare Proteins" button
+        if st.button("Add Protein"):
+            if not protein_id:
+                st.error("Please enter a valid Protein ID.")
+            else:
+                # Initialize session state for comparison
+                if "show_comparison" not in st.session_state:
+                    st.session_state["show_comparison"] = True
+                if "selected_proteins" not in st.session_state:
+                    st.session_state["selected_proteins"] = []
+                
+                # Add protein to the comparison list
+                if protein_id not in st.session_state["selected_proteins"]:
+                    st.session_state["selected_proteins"].append(protein_id)
+                    st.success(f"Added {protein_id} to comparison list!")
+                else:
+                    st.warning(f"{protein_id} is already in the comparison list.")
+        
+        generate_and_display_plots("Generate Comparison", id_type, selected_protein, "compare_proteins_button")
+ 
+
+def research():
+    """Research page with publications."""
+    st.title("Research and Publications")
+    st.markdown("""
+    - **2024**: Stimulation of skeletal stem cells in the growth plate promotes linear bone growth.
+    - **2023**: Plasticity of epithelial cells during wound healing.
+    - **2022**: ARF suppression in pediatric brain tumors.
+    """)
+
+def about():
+    st.title("About Us")
+    st.write("Learn more about the Higgins Lab and our work.")
+
+def data():
+    st.title("Data")
+    st.write("Access our latest datasets and reports.")
+
+def contact():
+    st.title("Contact Us")
+    st.write("Feel free to contact us for more information!")
+
+def main():
+    """Main function to run the Streamlit app."""
+    # Navbar Section
+    st.markdown("""
+        <div class="navbar">
+            <div class="brand">ScleroBase</div>
+            <div>
+                <a href="?page=home">Home</a>
+                <a href="?page=about">About Us</a>
+                <a href="?page=research">Research</a>  <!-- Link to Research -->
+                <a href="?page=data">Data</a>
+                <a href="?page=contact">Contact Us</a>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    query_params = st.query_params
+    page = query_params.get("page", "home") 
+
+    if page == "home":
+        home()
+    elif page == "research":
+        research()
+    elif page == "about":
+        about()
+    elif page == "data":
+        data()
+    elif page == "contact":
+        contact()
 
 if __name__ == "__main__":
     main()
