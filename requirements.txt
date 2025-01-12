@@ -1,6 +1,5 @@
-flask
-gunicorn
 streamlit
 pandas
 numpy
 seaborn
+pathlib

@@ -1,18 +1,27 @@
-#Interferon regulatory factor 6
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from pathlib import Path
+
 from Correlation import load_data, filter_data, plot_correlation
 from boxplot import plot_boxplot
 from volcano import plot_volcano
 
-# Paths to the data files
-METADATA_PATH = "../Core data/somalogic_metadata.csv"
-PROTEINS_PATH = "../Core data/proteins_plot.csv"
-VOLCANO_PATH = "../Core data/SSC_all_Healthy_allproteins.csv"
+# Get current file path
+BASE_PATH = Path(__file__).parent
+
+# Construct paths
+METADATA_PATH = str(BASE_PATH.parent / "Core data/somalogic_metadata.csv")
+PROTEINS_PATH = str(BASE_PATH.parent / "Core data/proteins_plot.csv")
+VOLCANO_PATH = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
 
 # Set page configuration
-st.set_page_config(layout="wide")  # Wide layout to avoid the sidebar
+st.set_page_config(
+    page_title="ScleroBase",  
+    page_icon="🧬", 
+    layout="wide",
+    initial_sidebar_state="collapsed"  
+)
 
 # Add custom fonts from Google Fonts
 st.markdown("""
@@ -35,7 +44,7 @@ st.markdown("""
             top: 0;
             left: 0;
             z-index: 999;  /* Ensure navbar stays above other elements */
-            height: 10vh;
+            height: 9vh;
         }
 
         .brand_container{
@@ -47,17 +56,17 @@ st.markdown("""
 
         .brand {
             font-family: 'MuseoModerno', cursive;  /* Updated to MuseoModerno */
-            font-size: 50px;  /* Brand name size */
+            font-size: 45px;  /* Brand name size */
             font-weight: 400;
             color: white;
-            padding: 10px 10px 12px 10px;
+            padding: 10px 10px 23px 10px;
         }
 
         .p_brand {
             font-size: 18px;
             color: white;
             text-align: center;
-            margin-top: -32px;
+            margin-top: -43px;
         }
             
         .navbar a {
@@ -94,83 +103,192 @@ def home():
     metadata, proteins, volcano = get_data()
 
     # Create two columns with custom width proportions
-    col1, col2 = st.columns([2, 3])  # col1 will take up 2/5 of the space, col2 will take up 3/5
+    col1, col2 = st.columns([3, 4])  # col1 will take up 2/5 of the space, col2 will take up 3/5
 
     with col1:
         st.markdown("""
         <style>
+                    
+            .init_info {
+                padding-top: 70px;
+                font-size: 55px;  
+            }
+                    
+            .init_p {
+                font-size: 20px;
+                padding-right: 5vw;
+            }
+                    
             .green-box {
+                margin-top: 80px;
                 background-color: #e0f7e9;  /* Light green background */
                 border-radius: 20px;      /* Rounded corners */
                 padding: 15px;           /* Inner padding */
-                margin-bottom: 15px;     /* Space below the box */
                 border: 1px solid #a5d6a7; /* Light green border */
                 box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
+                width: 80%;
             }
+                    
+                    
         </style>
 
         <div class="init_info"> 
-            <h>Initial info</h>
-            <p>This is ...</p>
+            <h>Welcome to ScleroBase</h>
+            <div class="init_p">The hub for searching and comparing protein expression levels for individuals with sclerederma!</div>
         </div>
         <div class="green-box">
-            <h3>Metadata and Insights</h3>
             <ul>
-                <li><b>Metadata</b>: Information about samples and conditions.</li>
-                <li><b>Proteins</b>: Protein-level information with expression data.</li>
-                <li><b>Volcano Plot</b>: Highlights significantly regulated proteins.</li>
+                <li style="font-size: 20px; padding: 10px;"><b>Explore All proteins</b>: Information about samples and conditions.</li>
+                <li style="font-size: 20px; padding: 10px;"><b>Search for specific protein</b>: Protein-level information with expression data.</li>
+                <li style="font-size: 20px; padding: 10px;"><b>Compare protein expression levels</b>: Highlights significantly regulated proteins.</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
 
     # Right Column: Volcano Plot
     with col2:
-        st.subheader("Volcano Plot")
-        st.markdown("Displaying a volcano plot for the provided dataset.")
-        volcano_plot = plot_volcano(volcano)  # Generate the plot
-        st.pyplot(volcano_plot)
+        # Center, increase size, and change color of the subheader using HTML
+        st.markdown("""
+        <h2 style='text-align: center; font-size: 35px; color: orange; padding-right: 10px; padding-bottom: 30px'>Volcano Plot</h2>
+        """, unsafe_allow_html=True)
+        
+        plot_volcano(volcano)  # Generate the plot
 
-
-    """Home page with plots and analysis."""
     st.markdown("""
-        <h2 style='color: #CC5500;'>MRSS vs Intensity Analysis</h2>
+        <h2 style='color: green;'>Protein Search</h2>
     """, unsafe_allow_html=True)
+  
+    if "protein_options" not in st.session_state:
+    # Load and cache data
+        metadata, proteins, _ = get_data()
+        st.session_state["protein_options_map"] = {
+            "EntrezGeneID": proteins["EntrezGeneID"].dropna().unique().tolist(),
+            "EntrezGeneSymbol": proteins["EntrezGeneSymbol"].dropna().unique().tolist(),
+            "TargetFullName": proteins["TargetFullName"].dropna().unique().tolist(),
+            "Target": proteins["Target"].dropna().unique().tolist(),
+        }
+    
+    def generate_and_display_plots(button_name, id_type, protein_id, button_key):
 
-    # Sidebar for user input
-    id_type = st.selectbox(
-        "Select Protein Reference Type:",
-        ["TargetFullName", "Target", "EntrezGeneID", "EntrezGeneSymbol"]
-    )
-    protein_id = st.text_input("Enter Protein ID:")
+        # Button for generating plots
+        if st.button(button_name, key=button_key):
+            st.session_state["active_button"] = button_key  # Track which button was clicked
+            if not protein_id:
+                st.error("Please enter a valid Protein ID.")
+            else:
+                try:
+                    # Load data and cache in session state
+                    metadata, proteins, volcano = get_data()
+                    filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
+                    protein_name = filtered_data["TargetFullName"].iloc[0]
 
-    if st.button("Generate Plots"):
-        if not protein_id:
-            st.error("Please enter a valid Protein ID.")
-        else:
+                    # Store data in session state
+                    st.session_state["plot_data"] = {
+                        "filtered_data": filtered_data,
+                        "metadata_info": metadata_info,
+                        "protein_name": protein_name,
+                        "volcano_plot_data": volcano
+                    }
+
+                except Exception as e:
+                    st.error(f"An unexpected error occurred: {str(e)}.")
+                    st.session_state["active_button"] = None
+
+        # Only display plots if the current button is active
+        if st.session_state.get("active_button") == button_key:
             try:
-                metadata, proteins, volcano = get_data()
-                filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
-                protein_name = filtered_data["TargetFullName"].iloc[0]
+                data = st.session_state["plot_data"]
+                protein_name = data["protein_name"]
+                filtered_data = data["filtered_data"]
+                metadata_info = data["metadata_info"]
+                volcano = data["volcano_plot_data"]
 
-                # Add tabs and generate plot on each one
-                corr_tab, box_tab = st.tabs(['Correlation Plot', 'Box Plot'])
+                # Add tabs and display plots
+                corr_tab, box_tab, volc_tab = st.tabs(['Correlation Plot', 'Box Plot', 'Volcano Plot'])
                 with corr_tab:
-                    # Generate and display the correlation plot
                     st.subheader(f"Correlation Plot for {protein_name}")
                     corr_plot = plot_correlation(filtered_data, metadata_info, protein_name)
                     st.pyplot(corr_plot)
+
                 with box_tab:
-                    # Generate and display the boxplot
                     st.subheader(f"Box Plot for {protein_name}")
                     box_plot = plot_boxplot(filtered_data, metadata_info, protein_name)
                     st.pyplot(box_plot)
 
-            except ValueError as e:
-                st.error(f"Value Error: {str(e)}. Please check the input values or dataset.")
-            except KeyError as e:
-                st.error(f"Key Error: Missing column in the data - {e}. Please verify the dataset structure.")
+                with volc_tab:
+                    st.subheader(f"Volcano Plot")
+                    st.markdown("Displaying a volcano plot for the provided dataset.")
+                    volcano_plot = plot_volcano(volcano)
+                    st.pyplot(volcano_plot)
+
             except Exception as e:
-                st.error(f"An unexpected error occurred: {str(e)}.")
+                st.error(f"An error occurred while displaying the plots: {str(e)}")
+
+
+
+    #Dropdown box
+    col1, col2 = st.columns([2, 2])  # Two equal-width columns (1:1)
+    with col1:
+        id_type = st.selectbox(
+            "Select Protein Reference Type:",
+            ["EntrezGeneID", "EntrezGeneSymbol", "TargetFullName", "Target"]
+        )
+        
+        # Update the options based on the selected reference type
+        protein_options = st.session_state["protein_options_map"][id_type]
+
+        # Create an autocomplete selectbox for protein ID suggestions
+        protein_id = st.selectbox(
+            "Enter or select Protein ID:",
+            options=[""] + protein_options,  # Add an empty default option for manual input
+            index=0,
+            help=f"Select or type a valid {id_type} from the dataset."
+        )
+
+        generate_and_display_plots("Generate Plots", id_type, protein_id, "generate_plots_button")
+
+
+
+    # Initialize session state keys if they don't exist
+    if "selected_proteins" not in st.session_state:
+        st.session_state["selected_proteins"] = []
+
+    if "show_comparison" not in st.session_state:
+        st.session_state["show_comparison"] = False
+
+    # Control variable to check if "Generate Plots" has been clicked
+    if "generate_plots_clicked" not in st.session_state:
+        st.session_state["generate_plots_clicked"] = False
+
+
+    with col2:
+        selected_protein = st.selectbox(
+            "Selected Proteins for Comparison:",
+            options=st.session_state.get("selected_proteins", []),
+            index=0 if st.session_state.get("selected_proteins") else -1,  # Default to first item or empty
+            help="Select a protein to view detailed information."
+        )
+
+        # "Compare Proteins" button
+        if st.button("Add Protein"):
+            if not protein_id:
+                st.error("Please enter a valid Protein ID.")
+            else:
+                # Initialize session state for comparison
+                if "show_comparison" not in st.session_state:
+                    st.session_state["show_comparison"] = True
+                if "selected_proteins" not in st.session_state:
+                    st.session_state["selected_proteins"] = []
+                
+                # Add protein to the comparison list
+                if protein_id not in st.session_state["selected_proteins"]:
+                    st.session_state["selected_proteins"].append(protein_id)
+                    st.success(f"Added {protein_id} to comparison list!")
+                else:
+                    st.warning(f"{protein_id} is already in the comparison list.")
+        
+        generate_and_display_plots("Generate Comparison", id_type, selected_protein, "compare_proteins_button")
+ 
 
 def research():
     """Research page with publications."""
@@ -179,6 +297,55 @@ def research():
     - **2024**: Stimulation of skeletal stem cells in the growth plate promotes linear bone growth.
     - **2023**: Plasticity of epithelial cells during wound healing.
     - **2022**: ARF suppression in pediatric brain tumors.
+    """)
+
+def about():
+    st.title("About Us")
+    st.write("Learn more about the Higgins Lab and our work.")
+
+def data():
+    st.title("Data")
+    st.write("Access our latest datasets and reports.")
+
+def contact():
+    st.title("Contact Us")
+    st.write("Feel free to contact us for more information!")
+
+def main():
+    """Main function to run the Streamlit app."""
+    # Navbar Section
+    st.markdown("""
+        <div class="navbar">
+            <div class="brand">ScleroBase</div>
+            <div>
+                <a href="?page=home">Home</a>
+                <a href="?page=about">About Us</a>
+                <a href="?page=research">Research</a>  <!-- Link to Research -->
+                <a href="?page=data">Data</a>
+                <a href="?page=contact">Contact Us</a>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    query_params = st.query_params
+    page = query_params.get("page", "home") 
+
+    if page == "home":
+        home()
+    elif page == "research":
+        research()
+    elif page == "about":
+        about()
+    elif page == "data":
+        data()
+    elif page == "contact":
+        contact()
+
+def research():
+    """Research page with publications."""
+    st.title("Research and Publications")
+    st.markdown("""
+    Specific papers...
     """)
 
 def about():
