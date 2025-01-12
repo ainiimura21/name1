@@ -8,6 +8,7 @@ generate the following plots:
 - Boxplot
 - UMAP plot
 - Volcano plot
+- Violin plot
 
 ---
 ## Table of Contents
@@ -46,6 +47,8 @@ on the plot.
 ### Box Plot
 
 ### UMAP Plot
+
+### Violin Plot
 
 ---
 ## Installation
