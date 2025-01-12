@@ -46,19 +46,20 @@ def plot_boxplot(filtered_data, metadata_info, protein_name):
     ax = fig.add_axes([0, 0, 1, 1])
 
     # Creating plot
-    bp = ax.boxplot(data)
-
+    bp = ax.boxplot(data, patch_artist=True)
+    for median in bp['medians']:
+        median.set_color('black')
     # show plot
     plt.show()
 
 
     # Set title and labels
-    plt.title(f"Box Plot {protein_name}", fontsize=16)
-    plt.xlabel("MRSS (Linear Scale)", fontsize=12)
+    plt.title(f"Box Plot for {protein_name}", fontsize=16)
     plt.xticks([1,2,3,4], ['Healthy', 'VEDOSS', 'SSC_low', 'SSC_high'])
     plt.ylabel("Intensity", fontsize=12)
     plt.grid(visible=True, linestyle="--", alpha=0.6)
-
     plt.tight_layout()
-
+    conditions = ["Healthy", "VEDOSS", "SSC_low", "SSC_high"]
+    for patch, condition in zip(bp['boxes'], conditions):
+        patch.set_facecolor(custom_palette[condition])
     return plt
