@@ -5,11 +5,6 @@ import matplotlib.pyplot as plt
 from dataloader import load_data, filter_data
 
 def plot_boxplot(merged_data, protein_name):
-    """
-    Create a boxplot of the intensity of 4 Scleroderma categories
-    """
-    merged_data = merged_data
-    # Create 4 sub columns 
     data_healthy = merged_data[merged_data['condition']== "Healthy"]
     data_VEDOSS =merged_data[merged_data['condition']==  "VEDOSS"]
     data_SSClow = merged_data[merged_data['condition']== "SSC_low"]
@@ -22,23 +17,19 @@ def plot_boxplot(merged_data, protein_name):
         "SSC_low": "cyan",
         "SSC_high": "red"
     }
-    # Extract the intensity values for all 4 catagories
+    # Extract the intensity values for all 4 categories
     data_healthy = data_healthy["Intensity"]
     data_VEDOSS =data_VEDOSS["Intensity"]
     data_SSClow = data_SSClow["Intensity"]
     data_SSChigh = data_SSChigh["Intensity"]
     data = [data_healthy, data_VEDOSS, data_SSClow, data_SSChigh]
-    fig = plt.figure(figsize =(10, 7))
-
-    ax = fig.add_axes([0, 0, 1, 1])
-
-    # Creating plot
+    fig, ax = plt.subplots(figsize =(10, 7))
     bp = ax.boxplot(data, patch_artist=True)
     for median in bp['medians']:
         median.set_color('black')
+
     # show plot
     plt.show()
-
 
     # Set title and labels
     plt.title(f"Box Plot for {protein_name}", fontsize=16)
