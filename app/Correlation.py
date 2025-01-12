@@ -2,108 +2,23 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from matplotlib.ticker import LogLocator, LogFormatterSciNotation, NullFormatter
+from matplotlib.ticker import LogLocator, NullFormatter
 
-
-def load_data(metadata_path, proteins_path):
-    """
-    Load metadata and protein data from the provided file paths.
-    """
-    metadata = pd.read_csv(metadata_path)
-    proteins = pd.read_csv(proteins_path)
-    return metadata, proteins
-
-
-def filter_data(proteins, metadata, protein_id, id_type):
-    """
-    Filter the proteins data for a specific protein ID based on the ID type
-    and retrieve corresponding metadata information.
-    """
-    valid_columns = {
-        "TargetFullName": "TargetFullName",
-        "Target": "Target",
-        "EntrezGeneID": "EntrezGeneID",
-        "EntrezGeneSymbol": "EntrezGeneSymbol",
-    }
-
-    if id_type not in valid_columns:
-        raise ValueError(f"Invalid ID type. Choose from {list(valid_columns.keys())}.")
-
-    column_name = valid_columns[id_type]
-
-    if column_name not in proteins.columns:
-        raise KeyError(f"Column '{column_name}' not found in proteins data.")
-
-    # Filter proteins data for the given protein ID
-    filtered_data = proteins[proteins[column_name] == protein_id]
-    if filtered_data.empty:
-        raise ValueError(f"No data found for {id_type} = {protein_id}.")
-
-    # Group by SeqID and calculate mean intensity for each
-    seqid_groups = (
-        filtered_data.groupby("SeqId")
-        .agg(
-            mean_intensity=("Intensity", "mean"),
-            patient_count=("SampleId", "nunique"),
-        )
-        .reset_index()
-    )
-
-    # Drop SeqIDs that don't cover all 13 patients
-    seqid_groups = seqid_groups[seqid_groups["patient_count"] == 13]
-
-    # If no SeqIDs cover all 13 patients, proceed with the ones that cover the most
-    if seqid_groups.empty:
-        max_patients = filtered_data["SampleId"].nunique()
-        seqid_groups = (
-            filtered_data.groupby("SeqId")
-            .agg(
-                mean_intensity=("Intensity", "mean"),
-                patient_count=("SampleId", "nunique"),
-            )
-            .reset_index()
-        )
-        seqid_groups = seqid_groups[seqid_groups["patient_count"] == max_patients]
-
-    # Select the SeqID with the highest mean intensity
-    selected_seqid = seqid_groups.sort_values(
-        by=["mean_intensity", "SeqId"], ascending=[False, True]
-    ).iloc[0]["SeqId"]
-
-    # Filter the original data for the selected SeqID
-    final_data = filtered_data[filtered_data["SeqId"] == selected_seqid]
-
-    # Match SampleId in proteins with SubjectID in metadata
-    sample_ids = final_data["SampleId"].unique()
-    metadata_info = metadata[metadata["SubjectID"].isin(sample_ids)]
-
-    if metadata_info.empty:
-        raise ValueError(f"No metadata found for Sample IDs: {sample_ids}.")
-
-    return final_data, metadata_info
-
-def plot_correlation(filtered_data, metadata_info, protein_name):
+from dataloader import load_data, filter_data
+def plot_correlation(merged_data, protein_name):
     """
     Create a scatter plot of MRSS (linear scale) vs Intensity (logarithmic scale)
     with condition-specific colors for points and traditional logarithmic value markers.
 
     Parameters:
-    - filtered_data (pd.DataFrame): DataFrame containing filtered protein intensity data.
-    - metadata_info (pd.DataFrame): DataFrame containing corresponding metadata.
+    - filtered_data (pd.DataFrame): DataFrame containing filtered protein intensity data merged with the corresponding
+    metadata.
     - protein_name (str): Name of the protein for the plot title.
 
     Returns:
     - plt.Figure: The Matplotlib figure object containing the plot.
     """
-    # Merge filtered_data with metadata_info on SampleId
-    merged_data = pd.merge(
-        filtered_data,
-        metadata_info,
-        left_on="SampleId",
-        right_on="SubjectID",
-        how="inner"
-    )
-
+    merged_data = merged_data
     # Extract relevant columns
     mrss = merged_data["mrss"]
     intensity = merged_data["Intensity"]

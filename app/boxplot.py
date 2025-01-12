@@ -2,23 +2,9 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from dataloader import load_data, filter_data
 
-
-def plot_boxplot(filtered_data, metadata_info, protein_name):
-    # Merge filtered_data with metadata_info on SampleId
-    merged_data = pd.merge(
-        filtered_data,
-        metadata_info,
-        left_on="SampleId",
-        right_on="SubjectID",
-        how="inner"
-    )
-
-    # Debug: Print merged data
-    print("Merged Data:")
-    print(merged_data.head())
-
-    # Create 4 sub columns
+def plot_boxplot(merged_data, protein_name):
     data_healthy = merged_data[merged_data['condition']== "Healthy"]
     data_VEDOSS =merged_data[merged_data['condition']==  "VEDOSS"]
     data_SSClow = merged_data[merged_data['condition']== "SSC_low"]

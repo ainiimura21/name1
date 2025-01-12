@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-
+from dataloader import filter_data, load_data
 from Correlation import load_data, filter_data, plot_correlation
 from boxplot import plot_boxplot
 from volcano import plot_volcano
@@ -117,13 +117,12 @@ def home():
                 try:
                     # Load data and cache in session state
                     metadata, proteins, volcano = get_data()
-                    filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
-                    protein_name = filtered_data["TargetFullName"].iloc[0]
+                    merged_data = filter_data(proteins, metadata, protein_id, id_type)
+                    protein_name = merged_data["TargetFullName"].iloc[0]
 
                     # Store data in session state
                     st.session_state["plot_data"] = {
-                        "filtered_data": filtered_data,
-                        "metadata_info": metadata_info,
+                        "merged_data": merged_data,
                         "protein_name": protein_name,
                         "volcano_plot_data": volcano
                     }
@@ -137,20 +136,19 @@ def home():
             try:
                 data = st.session_state["plot_data"]
                 protein_name = data["protein_name"]
-                filtered_data = data["filtered_data"]
-                metadata_info = data["metadata_info"]
+                merged_data = data["merged_data"]
                 volcano = data["volcano_plot_data"]
 
                 # Add tabs and display plots
                 corr_tab, box_tab, volc_tab = st.tabs(['Correlation Plot', 'Box Plot', 'Volcano Plot'])
                 with corr_tab:
                     st.subheader(f"Correlation Plot for {protein_name}")
-                    corr_plot = plot_correlation(filtered_data, metadata_info, protein_name)
+                    corr_plot = plot_correlation(merged_data, protein_name)
                     st.pyplot(corr_plot)
 
                 with box_tab:
                     st.subheader(f"Box Plot for {protein_name}")
-                    box_plot = plot_boxplot(filtered_data, metadata_info, protein_name)
+                    box_plot = plot_boxplot(merged_data, protein_name)
                     st.pyplot(box_plot)
 
                 with volc_tab:
