@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-from dataloader import filter_data, load_data
+from dataloader import filter_data, load_data,load_singlecell_data
 from Correlation import load_data, filter_data, plot_correlation
 from boxplot import plot_boxplot
 from volcano import plot_volcano
@@ -14,6 +14,9 @@ BASE_PATH = Path(__file__).parent
 METADATA_PATH = str(BASE_PATH.parent / "Core data/somalogic_metadata.csv")
 PROTEINS_PATH = str(BASE_PATH.parent / "Core data/proteins_plot.csv")
 VOLCANO_PATH = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
+SINGLECELLADATA_PATH = str(BASE_PATH.parent / "Core data")
+SSC_HEALTHY_PROTS_PATH = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
+
 
 # Set page configuration
 st.set_page_config(
@@ -86,12 +89,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
 @st.cache_data
 def get_data():
     """Load and cache metadata and protein data."""
     metadata, proteins = load_data(METADATA_PATH, PROTEINS_PATH)
     volcano = pd.read_csv(VOLCANO_PATH)  # Load the volcano dataset separately
-    return metadata, proteins, volcano
+    single_cell_data = load_singlecell_data(SINGLECELLADATA_PATH) 
+    return metadata, proteins, volcano,single_cell_data
 
 def home():
     """Home page with plots and analysis."""
