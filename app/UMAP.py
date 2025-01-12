@@ -1,30 +1,16 @@
 import scanpy as sc
+import pandas as pd
 from matplotlib.pyplot import rc_context
 from matplotlib.colors import LinearSegmentedColormap
+from dataloader import load_singlecell_data,getEntrezGeneSymbol
 
-def umap_plot(EntrezGeneSymbol='ETHE1'):
-    # Paths to the data files
-    # single_cell_data_path = "./Core data"
+from pathlib import Path
 
-    single_cell_data_path = "/Users/linamraoui/Group_Software_Eng/name1/Core data"
-
-    # Import and read single cell data set
-    # single_cell_data = sc.read_h5ad(f'/Users/linamraoui/Group_Software_Eng/name1/Core data/final_combined_simplified.h5ad')
-
-    # List all the split .h5ad files
-    chunk_files = ['chunk_1.h5ad', 'chunk_2.h5ad', 'chunk_3.h5ad','chunk_4.h5ad','chunk_5.h5ad','chunk_6.h5ad']  # List all the chunk files
-
-    # Initialize a list to store the AnnData objects
-    adata_list = []
-    # Load each chunk and append it to the list
-    for chunk in chunk_files:
-        print("reading chunk i")
-        adata_chunk = sc.read(f'{single_cell_data_path}/{chunk}')
-        adata_list.append(adata_chunk)
-
-    # Concatenate all the chunks back into a single AnnData object
-    single_cell_data = adata_list[0].concatenate(adata_list[1:], join='outer')
-
+def umap_plot(input_data_key,input_data_value):
+    EntrezGeneSymbol = getEntrezGeneSymbol(input_data_key,input_data_value)
+    BASE_PATH = Path(__file__).parent
+    single_cell_data_path = str(BASE_PATH.parent / "Core data")
+    single_cell_data=load_singlecell_data(single_cell_data_path)
 
     color_vars=['leiden',EntrezGeneSymbol]
 
@@ -41,9 +27,8 @@ def umap_plot(EntrezGeneSymbol='ETHE1'):
         legend_fontoutline=1,)
     # /* end of reference 1 */
 
-    return 'done'
+    return sc.pl
 
 
-umap_plot('ETHE1')
-
-
+# umap_plot('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH GENESYMBOL
+# umap_plot('EntrezGeneID','7057')

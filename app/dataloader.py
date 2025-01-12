@@ -1,48 +1,44 @@
-from typing import Any, Tuple
 import pandas as pd
-from pandas import DataFrame
+import scanpy as sc
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from pathlib import Path
+
+def getEntrezGeneSymbol(input_data_key,input_data_value):
+    BASE_PATH = Path(__file__).parent
+    file_path = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
+    mapping= pd.read_csv(file_path)
+    return mapping[mapping[input_data_key]==input_data_value]['EntrezGeneSymbol'].iloc[0]
+
+def load_singlecell_data(single_cell_data_path):
+    
+    return sc.read(f'{single_cell_data_path}/final_combined_simplified.h5ad')
 
 
-def load_data(metadata_path: str, proteins_path: str) -> Tuple[DataFrame, DataFrame]:
+def load_data(metadata_path, proteins_path):
     """
     Load metadata and protein data from the provided file paths.
-
-    Parameters:
-    - metadata_path: Path to the metadata CSV file.
-    - proteins_path: Path to the proteins CSV file.
-
-    Returns:
-    - Tuple containing metadata and protein data as pandas DataFrames.
     """
     try:
         metadata = pd.read_csv(metadata_path)
-        proteins: DataFrame | Any = pd.read_csv(proteins_path)
+        proteins = pd.read_csv(proteins_path)
     except Exception as e:
         raise ValueError(f"Error loading files: {e}")
-
     return metadata, proteins
 
 
-def filter_data(
-    proteins: DataFrame, metadata: DataFrame, protein_id: str, id_type: str
-) -> DataFrame:
+def filter_data(proteins, metadata, protein_id, id_type):
     """
-    Filter and merge data for the selected protein ID and its SeqId with the highest mean intensity.
-
-    Parameters:
-    - proteins: Proteins data as a DataFrame.
-    - metadata: Metadata as a DataFrame.
-    - protein_id: The ID of the protein to filter for.
-    - id_type: The type of protein ID (e.g., TargetFullName, Target).
-
-    Returns:
-    - Filtered and merged DataFrame ready for plotting.
+    Filter the proteins data for a specific protein ID based on the ID type
+    and retrieve corresponding metadata information.
     """
     valid_columns = {
-        "TargetFullName": "TargetFullName",
-        "Target": "Target",
+        "TargetFullName": "TargetFullName", #SSC all healthy all proteins
+        "Target": "Target", #SSC all healthy all proteins
         "EntrezGeneID": "EntrezGeneID",
-        "EntrezGeneSymbol": "EntrezGeneSymbol",
+        "EntrezGeneSymbol": "EntrezGeneSymbol"
     }
 
     if id_type not in valid_columns:
@@ -59,32 +55,36 @@ def filter_data(
     if filtered_data.empty:
         raise ValueError(f"No data found for {id_type} = {protein_id}.")
 
-    # Group by SeqId to calculate mean intensity and select SeqId with the highest mean
-    seqid_groups = (
-        filtered_data.groupby("SeqId")
-        .agg(
-            mean_intensity=("Intensity", "mean"),
-            patient_count=("SampleId", "nunique"),
-        )
-        .reset_index()
-    )
+    # Debug: Ensure filtered data has SampleId
+    if "SampleId" not in filtered_data.columns:
+        raise KeyError("Column 'SampleId' not found in filtered proteins data.")
+    print(f"Filtered Data for {protein_id}:")
+    print(filtered_data.head())
 
-    # Drop SeqIds that don't cover all 13 patients
-    seqid_groups = seqid_groups[seqid_groups["patient_count"] == 13]
-    if seqid_groups.empty:
-        seqid_groups = seqid_groups.sort_values(by=["patient_count", "mean_intensity"], ascending=[False, False])
-
-    selected_seqid = seqid_groups.iloc[0]["SeqId"]
-
-    # Filter original data for the selected SeqId
-    final_data = filtered_data[filtered_data["SeqId"] == selected_seqid]
-
-    # Merge with metadata on SampleId
-    sample_ids = final_data["SampleId"].unique()
+    # Match SampleId in proteins with SubjectID in metadata
+    sample_ids = filtered_data["SampleId"].unique()
     metadata_info = metadata[metadata["SubjectID"].isin(sample_ids)]
 
     if metadata_info.empty:
         raise ValueError(f"No metadata found for Sample IDs: {sample_ids}.")
 
-    merged_data = pd.merge(final_data, metadata_info, left_on="SampleId", right_on="SubjectID", how="inner")
+    # Debug: Print metadata subset
+    print("Metadata Info:")
+    print(metadata_info.head())
+
+    # Merge filtered_data with metadata_info on SampleId
+    merged_data = pd.merge(
+        filtered_data,
+        metadata_info,
+        left_on="SampleId",
+        right_on="SubjectID",
+        how="inner"
+    )
+
+    # Debug: Print merged data
+    print("Merged Data:")
+    print(merged_data.head())
+
+
     return merged_data
+
