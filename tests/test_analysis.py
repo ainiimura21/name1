@@ -1,5 +1,6 @@
 import pandas as pd
-from app.analysis import compute_correlation, differential_expression
+import pytest
+from analysis import compute_correlation, differential_expression
 
 def test_compute_correlation():
     """Test correlation computation."""
