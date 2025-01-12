@@ -1,31 +1,48 @@
+from typing import Any, Tuple
 import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
+from pandas import DataFrame
 
 
-def load_data(metadata_path, proteins_path):
+def load_data(metadata_path: str, proteins_path: str) -> Tuple[DataFrame, DataFrame]:
     """
     Load metadata and protein data from the provided file paths.
+
+    Parameters:
+    - metadata_path: Path to the metadata CSV file.
+    - proteins_path: Path to the proteins CSV file.
+
+    Returns:
+    - Tuple containing metadata and protein data as pandas DataFrames.
     """
     try:
         metadata = pd.read_csv(metadata_path)
-        proteins = pd.read_csv(proteins_path)
+        proteins: DataFrame | Any = pd.read_csv(proteins_path)
     except Exception as e:
         raise ValueError(f"Error loading files: {e}")
+
     return metadata, proteins
 
 
-def filter_data(proteins, metadata, protein_id, id_type):
+def filter_data(
+    proteins: DataFrame, metadata: DataFrame, protein_id: str, id_type: str
+) -> DataFrame:
     """
-    Filter the proteins data for a specific protein ID based on the ID type
-    and retrieve corresponding metadata information.
+    Filter and merge data for the selected protein ID and its SeqId with the highest mean intensity.
+
+    Parameters:
+    - proteins: Proteins data as a DataFrame.
+    - metadata: Metadata as a DataFrame.
+    - protein_id: The ID of the protein to filter for.
+    - id_type: The type of protein ID (e.g., TargetFullName, Target).
+
+    Returns:
+    - Filtered and merged DataFrame ready for plotting.
     """
     valid_columns = {
-        "TargetFullName": "TargetFullName", #SSC all healthy all proteins
-        "Target": "Target", #SSC all healthy all proteins
+        "TargetFullName": "TargetFullName",
+        "Target": "Target",
         "EntrezGeneID": "EntrezGeneID",
-        "EntrezGeneSymbol": "EntrezGeneSymbol"
+        "EntrezGeneSymbol": "EntrezGeneSymbol",
     }
 
     if id_type not in valid_columns:
@@ -42,36 +59,32 @@ def filter_data(proteins, metadata, protein_id, id_type):
     if filtered_data.empty:
         raise ValueError(f"No data found for {id_type} = {protein_id}.")
 
-    # Debug: Ensure filtered data has SampleId
-    if "SampleId" not in filtered_data.columns:
-        raise KeyError("Column 'SampleId' not found in filtered proteins data.")
-    print(f"Filtered Data for {protein_id}:")
-    print(filtered_data.head())
+    # Group by SeqId to calculate mean intensity and select SeqId with the highest mean
+    seqid_groups = (
+        filtered_data.groupby("SeqId")
+        .agg(
+            mean_intensity=("Intensity", "mean"),
+            patient_count=("SampleId", "nunique"),
+        )
+        .reset_index()
+    )
 
-    # Match SampleId in proteins with SubjectID in metadata
-    sample_ids = filtered_data["SampleId"].unique()
+    # Drop SeqIds that don't cover all 13 patients
+    seqid_groups = seqid_groups[seqid_groups["patient_count"] == 13]
+    if seqid_groups.empty:
+        seqid_groups = seqid_groups.sort_values(by=["patient_count", "mean_intensity"], ascending=[False, False])
+
+    selected_seqid = seqid_groups.iloc[0]["SeqId"]
+
+    # Filter original data for the selected SeqId
+    final_data = filtered_data[filtered_data["SeqId"] == selected_seqid]
+
+    # Merge with metadata on SampleId
+    sample_ids = final_data["SampleId"].unique()
     metadata_info = metadata[metadata["SubjectID"].isin(sample_ids)]
 
     if metadata_info.empty:
         raise ValueError(f"No metadata found for Sample IDs: {sample_ids}.")
 
-    # Debug: Print metadata subset
-    print("Metadata Info:")
-    print(metadata_info.head())
-
-    # Merge filtered_data with metadata_info on SampleId
-    merged_data = pd.merge(
-        filtered_data,
-        metadata_info,
-        left_on="SampleId",
-        right_on="SubjectID",
-        how="inner"
-    )
-
-    # Debug: Print merged data
-    print("Merged Data:")
-    print(merged_data.head())
-
-
+    merged_data = pd.merge(final_data, metadata_info, left_on="SampleId", right_on="SubjectID", how="inner")
     return merged_data
-
