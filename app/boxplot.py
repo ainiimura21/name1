@@ -5,10 +5,6 @@ import matplotlib.pyplot as plt
 
 
 def plot_boxplot(filtered_data, metadata_info, protein_name):
-    """
-    Create a scatter plot of MRSS (linear scale) vs Intensity (logarithmic scale)
-    with condition-specific colors for points and tags.
-    """
     # Merge filtered_data with metadata_info on SampleId
     merged_data = pd.merge(
         filtered_data,
@@ -22,7 +18,7 @@ def plot_boxplot(filtered_data, metadata_info, protein_name):
     print("Merged Data:")
     print(merged_data.head())
 
-    # Create 4 sub columns 
+    # Create 4 sub columns
     data_healthy = merged_data[merged_data['condition']== "Healthy"]
     data_VEDOSS =merged_data[merged_data['condition']==  "VEDOSS"]
     data_SSClow = merged_data[merged_data['condition']== "SSC_low"]
@@ -35,23 +31,19 @@ def plot_boxplot(filtered_data, metadata_info, protein_name):
         "SSC_low": "cyan",
         "SSC_high": "red"
     }
-    # Extract the intensity values for all 4 catagories
+    # Extract the intensity values for all 4 categories
     data_healthy = data_healthy["Intensity"]
     data_VEDOSS =data_VEDOSS["Intensity"]
     data_SSClow = data_SSClow["Intensity"]
     data_SSChigh = data_SSChigh["Intensity"]
     data = [data_healthy, data_VEDOSS, data_SSClow, data_SSChigh]
-    fig = plt.figure(figsize =(10, 7))
-
-    ax = fig.add_axes([0, 0, 1, 1])
-
-    # Creating plot
+    fig, ax = plt.subplots(figsize =(10, 7))
     bp = ax.boxplot(data, patch_artist=True)
     for median in bp['medians']:
         median.set_color('black')
+
     # show plot
     plt.show()
-
 
     # Set title and labels
     plt.title(f"Box Plot for {protein_name}", fontsize=16)
