@@ -3,8 +3,8 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LogLocator, NullFormatter
-
 from dataloader import load_data, filter_data
+
 def plot_correlation(merged_data, protein_name):
     """
     Create a scatter plot of MRSS (linear scale) vs Intensity (logarithmic scale)
