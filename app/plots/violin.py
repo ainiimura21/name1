@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import rc_context
 from dataloader import load_singlecell_data,getEntrezGeneSymbol
 
-def violin_plot(input_data_key,input_data_value):
+def plot_violin(input_data_key,input_data_value):
     EntrezGeneSymbol = getEntrezGeneSymbol(input_data_key,input_data_value)
     BASE_PATH = Path(__file__).parent
     single_cell_data_path = str(BASE_PATH.parent / "Core data")
