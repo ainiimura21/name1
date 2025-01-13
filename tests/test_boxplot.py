@@ -1,62 +1,55 @@
-import unittest
-from unittest.mock import patch, MagicMock
+import pytest
 import pandas as pd
-import matplotlib.pyplot as plt
-from app.boxplot import plot_boxplot
+from unittest.mock import patch, MagicMock
+from app.plots.boxplot import plot_boxplot
 
+# Fixture for valid test data
+@pytest.fixture
+def valid_data():
+    """Fixture to provide valid intensity values for all conditions."""
+    return pd.DataFrame({
+        "SampleId": [1, 2, 3, 4],
+        "condition": ["Healthy", "VEDOSS", "SSC_low", "SSC_high"],
+        "Intensity": [10, 20, 15, 25]
+    })
 
-class TestPlotBoxplot(unittest.TestCase):
-    def setUp(self):
-        # Test filtered dataset
-        self.filtered_data = pd.DataFrame({
-            "SampleId": [1, 2, 3, 4],
-            "condition": ["Healthy", "VEDOSS", "SSC_low", "SSC_high"],
-            "Intensity": [10, 20, 15, 25]
-        })
-        # Test metadata dataset
-        self.metadata_info = pd.DataFrame({
-            "SubjectID": [1, 2, 3, 4],
-            "OtherColumn": ["A", "B", "C", "D"]
-        })
+# Fixture for invalid test data
+@pytest.fixture
+def invalid_data():
+    """Fixture to provide invalid intensity values (zero or negative)."""
+    return pd.DataFrame({
+        "SampleId": [1, 2, 3, 4],
+        "condition": ["Healthy", "VEDOSS", "SSC_low", "SSC_high"],
+        "Intensity": [-10, 0, 15, 25]
+    })
 
-        self.protein_name = "Test Protein"
+@pytest.fixture
+def protein_name():
+    """Fixture for test protein name."""
+    return "Test Protein"
 
-    @patch("matplotlib.pyplot.show")
-    def test_plot_boxplot(self, mock_show):
-        # Run the function
-        result = plot_boxplot(self.filtered_data, self.metadata_info, self.protein_name)
+@patch("matplotlib.pyplot.show")
+@patch("matplotlib.pyplot.subplots")
+def test_plot_boxplot(mock_subplots, mock_show, valid_data, protein_name):
+    """Test that the plot_boxplot function initializes the plot and creates a boxplot."""
+    # Mock figure and axes
+    mock_fig = MagicMock()
+    mock_ax = MagicMock()
+    mock_subplots.return_value = (mock_fig, mock_ax)
 
-        # Validate that plt.show() was called once
-        mock_show.assert_called_once()
+    # Call the function
+    plot_boxplot(valid_data, protein_name)
 
-        # Validate that the function returns matplotlib.pyplot
-        self.assertIs(result, plt)
+    # Verify that plt.subplots is called with correct parameters
+    mock_subplots.assert_called_once_with(figsize=(12, 8))
 
-    @patch("matplotlib.pyplot.subplots")  # Mock plt.subplots
-    def test_custom_palette_assignment(self, mock_subplots):
-        # Mock the return value of plt.subplots
-        mock_fig = MagicMock()
-        mock_ax = MagicMock()
-        mock_subplots.return_value = (mock_fig, mock_ax)
+    # Verify that the boxplot method is called on the axes
+    mock_ax.boxplot.assert_called_once()
 
-        # Run the function
-        plot_boxplot(self.filtered_data, self.metadata_info, self.protein_name)
+    # Verify that plt.show() is called to display the plot
+    mock_show.assert_called_once()
 
-        # Validate that plt.subplots was called
-        mock_subplots.assert_called_once_with(figsize=(10, 7))
-
-    def test_data_merge(self):
-        # Check if merged data is correct
-        merged_data = pd.merge(
-            self.filtered_data,
-            self.metadata_info,
-            left_on="SampleId",
-            right_on="SubjectID",
-            how="inner"
-        )
-        self.assertEqual(len(merged_data), 4)  # Ensure all rows are merged
-        self.assertIn("OtherInfo", merged_data.columns)  # Check for expected column
-
-
-if __name__ == "__main__":
-    unittest.main()
+def test_invalid_data_raises_error(invalid_data, protein_name):
+    """Test that plot_boxplot raises a ValueError for zero or negative intensity values."""
+    with pytest.raises(ValueError, match="contains zero or negative values"):
+        plot_boxplot(invalid_data, protein_name)

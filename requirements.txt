@@ -3,3 +3,7 @@ pandas
 numpy
 seaborn
 pathlib
+<<<<<<< HEAD
+=======
+scanpy
+>>>>>>> 68efadbf3aab921e291e0fb6a26d7b318910fb03
