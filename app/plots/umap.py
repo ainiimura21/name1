@@ -1,3 +1,5 @@
+# To run this code from python, download dataset file from google drive (link is in single_cell_data_link.txt in Core data) and move downloaded file to Core data folder
+
 import scanpy as sc
 import pandas as pd
 from matplotlib.pyplot import rc_context
