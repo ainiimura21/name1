@@ -4,6 +4,7 @@ from pandas.errors import ParserError
 from app.dataloader import load_data, filter_data, getEntrezGeneSymbol, load_singlecell_data
 from io import StringIO
 
+
 """Unit test for the dataloader.py file. Four functions are tested:
  filter_data()
  getEntrezGeneSymbol()
