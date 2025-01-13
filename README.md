@@ -1,6 +1,15 @@
-# Monitoring Progression of Scleroderma
+
+<p align="center">
+  <img src="assets/logo.png" alt="ScleroBase Logo" width="500" />
+</p>
+
+<p align="center">
+  <i> --- Monitoring Progression of Scleroderma ---</i>
+</p>
 
 ---
+
+
 ## Project Description
 This is a website for visualising datasets to study protein expression in Scleroderma patients. The website is able to 
 generate the following plots:
@@ -19,7 +28,7 @@ generate the following plots:
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact/Support](#contact)
-  
+
 ---
 ## Introduction
 Scleroderma is an autoimmune disease that can cause thickened areas of skin and connective tissues. To gain a deeper
