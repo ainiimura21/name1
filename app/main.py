@@ -56,14 +56,14 @@ st.markdown("""
 
         .brand {
             font-family: 'MuseoModerno', cursive;  /* Updated to MuseoModerno */
-            font-size: 45px;  /* Brand name size */
+            font-size: 35px;  /* Brand name size */
             font-weight: 400;
             color: white;
-            padding: 10px 10px 23px 10px;
+            padding: 2px 10px 23px 10px;
         }
 
         .p_brand {
-            font-size: 18px;
+            font-size: 15px;
             color: white;
             text-align: center;
             margin-top: -43px;
@@ -71,10 +71,10 @@ st.markdown("""
             
         .navbar a {
             color: white;
-            padding: 30px 30px;
+            padding: 20px 30px 20px 30px;
             text-decoration: none;
             font-weight: normal; 
-            font-size: 22px; 
+            font-size: 20px; 
             height: 100%;
             border-radius: 20px;
             /* Smooth transition for the colour */
@@ -110,17 +110,16 @@ def home():
         <style>
                     
             .init_info {
-                padding-top: 65px;
-                font-size: 55px;  
+                font-size: 45px;  
             }
                     
             .init_p {
-                font-size: 20px;
-                padding-right: 4vw;
+                font-size: 18px;
+                padding-right: 3vw;
             }
                     
             .green-box {
-                margin-top: 80px;
+                margin-top: 40px;
                 background-color: #e0f7e9;  /* Light green background */
                 border-radius: 20px;      /* Rounded corners */
                 padding: 15px;           /* Inner padding */
@@ -130,24 +129,25 @@ def home():
             }
                     
             .contact {
-                padding-top: 100px;
+                padding-top: 60px;
                 padding-right: 40px;
                 font-style: italic;
+                font-size: 15px;
             }
                     
         </style>
 
         <div class="init_info"> 
-            <h>Welcome to ScleroBase</h>
+            <h>Welcome to ScleroBase...</h>
             <div class="init_p">A Web-App for searching and comparing protein expression levels for individuals with scleraderma - and it's easy!</div>
         </div>
         <div class="green-box">
             <ul>
-                <li style="font-size: 20px; padding: 10px;"><b style="font-size:22px">Explore All proteins</b>: Search our database or simply look to the right at our volcano plot.</li>
+                <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Explore All proteins</b>: Search our database or simply look to the right at our volcano plot.</li>
                 <br>
-                <li style="font-size: 20px; padding: 10px;"><b style="font-size:22px">Search for specific protein</b>: Enter a protein, and check out the graphs.</li>
+                <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Search for specific protein</b>: Enter a protein, and check out the graphs.</li>
                 <br>
-                <li style="font-size: 20px; padding: 10px;"><b style="font-size:22px">Compare protein expression levels</b>: Compare graphs side by side.</li>
+                <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Compare protein expression levels</b>: Compare graphs side by side.</li>
             </ul>
         </div>
         <div class="contact">The Higgins Lab collects it's own data, and the graphs are derived thereof. If you feel like adding your very own data, please contact kb822@ic.ac.uk</div>
@@ -155,16 +155,12 @@ def home():
 
     # Right Column: Volcano Plot
     with col2:
-        # Center, increase size, and change color of the subheader using HTML
-        st.markdown("""
-        <h2 style='text-align: center; font-size: 35px; color: orange; padding-right: 10px;'></h2>
-        """, unsafe_allow_html=True)
         
         plot_volcano(volcano)  # Generate the plot
 
 
     st.markdown("""
-        <h2 style='color: green;'></h2>
+        <h2 style='margin-top: -20px;'></h2>
     """, unsafe_allow_html=True)
 
     st.markdown("""

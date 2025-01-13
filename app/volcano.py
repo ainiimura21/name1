@@ -14,6 +14,18 @@ def plot_volcano(data):
         raise ValueError("P.Value contains non-positive values, which cannot be logged.")
     data['-log10_pvalue'] = -np.log10(data['P.Value'])
 
+        # Add custom CSS for tighter padding
+    st.markdown(
+        """
+        <style>
+        div.stSlider {
+            margin-top: -10px; /* Reduce space above sliders */
+            margin-bottom: -20px; /* Reduce space below sliders */
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
         # Create a compact layout for sliders with padding
     padding1, col1, padding2, col2, padding3, col3, padding4 = st.columns([1, 4, 1, 4, 1, 4, 1])  # Adjust proportions as needed
 
@@ -84,7 +96,7 @@ def plot_volcano(data):
         title_y=0.87,
         plot_bgcolor="white",
         hovermode="closest",
-        height=700,  # Make the graph taller
+        height=600,  # Make the graph taller
         margin=dict(l=50, r=50, t=100, b=50),  # Adjust top margin for additional title
         xaxis=dict(range=[-max(abs(data['logFC'])) - 0.2, max(abs(data['logFC'])) + 0.2])  # Symmetrical X-axis range
     )
@@ -94,8 +106,8 @@ def plot_volcano(data):
         text="<b>Volcano Plot<b>",  # Replace with your desired title
         xref="paper",  # Use 'paper' coordinates to position relative to the figure
         yref="paper",
-        x=-0.01,  # Center the title horizontally
-        y=1.09,  # Position above the main title (adjust as needed)
+        x=-0.045,  # Center the title horizontally
+        y=1.12,  # Position above the main title (adjust as needed)
         showarrow=False,  # No arrow for a title
         font=dict(size=24, family="Arial", color="orange")  # Customize font
     )
