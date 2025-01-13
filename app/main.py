@@ -59,7 +59,7 @@ st.markdown("""
             font-size: 35px;  /* Brand name size */
             font-weight: 400;
             color: white;
-            padding: 2px 10px 23px 10px;
+            padding: 4px 10px 23px 10px;
         }
 
         .p_brand {

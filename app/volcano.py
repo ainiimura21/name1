@@ -14,7 +14,7 @@ def plot_volcano(data):
         raise ValueError("P.Value contains non-positive values, which cannot be logged.")
     data['-log10_pvalue'] = -np.log10(data['P.Value'])
 
-        # Add custom CSS for tighter padding
+    # Add custom CSS for tighter padding
     st.markdown(
         """
         <style>
@@ -26,7 +26,8 @@ def plot_volcano(data):
         """,
         unsafe_allow_html=True
     )
-        # Create a compact layout for sliders with padding
+
+    # Create a compact layout for sliders with padding
     padding1, col1, padding2, col2, padding3, col3, padding4 = st.columns([1, 4, 1, 4, 1, 4, 1])  # Adjust proportions as needed
 
     with col1:
@@ -42,13 +43,11 @@ def plot_volcano(data):
             "Point Size", min_value=5, max_value=20, value=10, step=1, key="size"
         )
 
-
-    # Categorise points based on updated thresholds
-    data['Colour'] = 'grey'  # Default for non-significant points
-    data.loc[(data['logFC'] > fold_change_threshold) & (data['P.Value'] < 0.05), 'Colour'] = 'red'
-    data.loc[(data['logFC'] < -fold_change_threshold) & (data['P.Value'] < 0.05), 'Colour'] = 'green'
-    data.loc[(data['logFC'] > fold_change_threshold) & (data['P.Value'] > 0.05), 'Colour'] = 'orange'
-    data.loc[(data['logFC'] < -fold_change_threshold) & (data['P.Value'] > 0.05), 'Colour'] = 'orange'
+    # Categorise points based on thresholds
+    data['Colour'] = 'Not Significant'  # Default category
+    data.loc[(data['logFC'] > fold_change_threshold) & (data['P.Value'] < 0.05), 'Colour'] = 'Significant Increase'
+    data.loc[(data['logFC'] < -fold_change_threshold) & (data['P.Value'] < 0.05), 'Colour'] = 'Significant Decrease'
+    data.loc[((data['logFC'] > fold_change_threshold) | (data['logFC'] < -fold_change_threshold)) & (data['P.Value'] >= 0.05), 'Colour'] = 'Fold Change Only'
 
     # Create an interactive plot using Plotly
     fig = px.scatter(
@@ -56,7 +55,7 @@ def plot_volcano(data):
         x='logFC',
         y='-log10_pvalue',
         color='Colour',
-        color_discrete_map={'red': 'red', 'green': 'green', 'grey': 'grey', 'orange': 'orange'},
+        color_discrete_map={'Significant Increase': 'red', 'Significant Decrease': 'green', 'Not Significant': 'grey', 'Fold Change Only': 'orange'},
         hover_name='Target',  # Protein name will be shown when hovering
         labels={"logFC": "Log₂ Fold Change", "-log10_pvalue": "-Log₁₀ P", "Colour": "Significance"},
         title="SSc High vs Healthy Proteins",
@@ -111,7 +110,6 @@ def plot_volcano(data):
         showarrow=False,  # No arrow for a title
         font=dict(size=24, family="Arial", color="orange")  # Customize font
     )
-
 
     # Display the interactive Plotly chart within your Streamlit app
     st.plotly_chart(fig)
