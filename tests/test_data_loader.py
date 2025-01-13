@@ -1,72 +1,78 @@
 import pytest
 import pandas as pd
 from pandas.errors import ParserError
-from unittest.mock import patch, mock_open
-from app.dataloader import load_data
+from app.dataloader import load_data, filter_data, getEntrezGeneSymbol, load_singlecell_data
+from io import StringIO
 
-# Fixture for valid test data
+"""Unit test for the dataloader.py file. Four functions are tested:
+ filter_data()
+ getEntrezGeneSymbol()
+ load_singlecell_data()
+ load_data()
+ """
 @pytest.fixture
-def valid_metadata_file():
-    """Fixture to provide valid metadata CSV content."""
-    return """SubjectID,OtherInfo
-1,Info1
-2,Info2
-3,Info3
-"""
-
+def valid_metadata_df():
+    return pd.DataFrame({
+        "SubjectID": [1, 2, 3],
+        "Condition": ["Healthy", "VEDOSS", "Healthy"],
+        "Info": [1, 2, 3]
+    })
 @pytest.fixture
-def valid_proteins_file():
-    """Fixture to provide valid proteins CSV content."""
-    return (
-        "SampleId,TargetFullName,Target,EntrezGeneID,EntrezGeneSymbol"
-        "1,Protein A,A,101,GA"
-        "2,Protein B,B,102,GB"
-        "3,Protein C,C,103,GC"
-    )
+def valid_proteins_df():
+    return pd.DataFrame({
+        "SampleId": [1, 2, 3, 4],
+        "TargetFullName": ["ProteinA", "ProteinB", "ProteinC", "ProteinD"],
+        "EntrezGeneID": [101, 102, 103, 104],
+        "EntrezGeneSymbol": ["GeneA", "GeneB", "GeneC", "GeneD"]
+    })
 
-@pytest.fixture
-def invalid_file_content():
-    """Fixture for invalid file content (non-CSV)."""
-    return "Invalid Content"
 
-def test_load_data_valid_files(valid_metadata_file, valid_proteins_file):
-    """Test that load_data loads valid CSV files correctly."""
-    with patch("pandas.read_csv") as mock_read_csv:
-        mock_read_csv.side_effect = [
-            pd.DataFrame({"SubjectID": [1, 2, 3], "OtherInfo": ["Info1", "Info2", "Info3"]}),
-            pd.DataFrame({
-                "SampleId": [1, 2, 3],
-                "TargetFullName": ["Protein A", "Protein B", "Protein C"],
-                "Target": ["A", "B", "C"],
-                "EntrezGeneID": [101, 102, 103],
-                "EntrezGeneSymbol": ["GA", "GB", "GC"]
-            }),
-        ]
+def test_load_data():
+    """
+    Test the load_data function for valid and invalid data.
+    """
+    # Valid input
+    valid_metadata_df = StringIO("""SubjectID,Condition,Info
+1,Healthy,1
+2,VEDOSS,2
+3,Healthy,3
+""")
+    valid_proteins_df = StringIO("""SampleId,TargetFullName,EntrezGeneID,EntrezGeneSymbol
+1,ProteinA,101,GeneA
+2,ProteinB,102,GeneB
+3,ProteinC,103,GeneC
+4,ProteinD,104,GeneD
+""")
 
-        metadata, proteins = load_data("metadata.csv", "proteins.csv")
+    # Test valid input
+    metadata, protein = load_data(valid_metadata_df, valid_proteins_df)
+    assert isinstance(metadata, pd.DataFrame), "Metadata should be a DataFrame."
+    assert isinstance(protein, pd.DataFrame), "Proteins should be a DataFrame."
+    assert len(metadata) == 3, "Metadata should have 3 rows."
+    assert len(protein) == 4, "Proteins should have 4 rows."
 
-        assert not metadata.empty
-        assert not proteins.empty
-        assert list(metadata.columns) == ["SubjectID", "OtherInfo"]
-        assert list(proteins.columns) == ["SampleId", "TargetFullName", "Target", "EntrezGeneID", "EntrezGeneSymbol"]
-
-def test_load_data_invalid_file_path():
-    """Test that load_data raises ValueError for invalid file paths."""
+    # Test invalid file paths
     with pytest.raises(ValueError, match="Error loading files"):
-        load_data("invalid_metadata.csv", "invalid_proteins.csv")
+        load_data("non_existent_metadata.csv", "non_existent_proteins.csv")
 
-def test_load_data_invalid_file_content():
-    """Test that load_data raises ValueError for invalid file content."""
-    with patch("pandas.read_csv", side_effect=ParserError("Error parsing file")):
-        with pytest.raises(ValueError, match="Error loading files"):
-            load_data("metadata.csv", "proteins.csv")
+def test_filter_data(valid_proteins_df, valid_metadata_df):
+    """
+    Filter the proteins data for a specific protein ID based on the ID type
+    and retrieve corresponding metadata information.
+    """
+    invalid_id = "invalid_id"
+    invalid_protein = "invalid_protein"
+    valid_id = "TargetFullName"
+    valid_protein = "ProteinB"
 
-def test_load_data_empty_files():
-    """Test that load_data handles empty files correctly."""
-    with patch("pandas.read_csv") as mock_read_csv:
-        mock_read_csv.side_effect = [pd.DataFrame(), pd.DataFrame()]
+    # Test invalid inputs
+    with pytest.raises(ValueError, match=f"No data found for {valid_id} = {invalid_protein}"):
+        filter_data(valid_proteins_df, valid_metadata_df, invalid_protein, valid_id)
+    with pytest.raises(ValueError, match=f"Invalid ID type"):
+        filter_data(valid_proteins_df, valid_metadata_df, valid_protein, invalid_id)
 
-        metadata, proteins = load_data("metadata.csv", "proteins.csv")
-
-        assert metadata.empty
-        assert proteins.empty
+    # Test valid inputs
+    merged_df = filter_data(valid_proteins_df, valid_metadata_df, valid_protein, valid_id)
+    assert not merged_df.empty, "Result is not empty"
+    assert len(merged_df) == 1, "Result should have exactly 1 row"
+    assert len(merged_df.columns) == 7, "Result should have exactly 7 columns"
