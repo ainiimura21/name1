@@ -124,7 +124,7 @@ def plot_correlation(filtered_data, metadata_info, protein_name):
     }
 
     # Initialize the plot
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(10, 7))
     ax = plt.gca()
 
     # Create scatter plot
@@ -171,9 +171,9 @@ def plot_correlation(filtered_data, metadata_info, protein_name):
         )
 
     # Set title and labels with appropriate font sizes
-    plt.title(f"Correlation Plot for {protein_name}", fontsize=16, fontweight='bold')
-    plt.xlabel("MRSS (Linear Scale)", fontsize=14)
-    plt.ylabel("Intensity (Logarithmic Scale)", fontsize=14)
+    plt.title(f"Correlation Plot for {protein_name}", fontsize=16,)
+    plt.xlabel("Total mRSS", fontsize=14)
+    plt.ylabel("Intensity", fontsize=14)
 
     # Customize grid for better readability
     plt.grid(which='both', linestyle='--', linewidth=0.5, alpha=0.7)

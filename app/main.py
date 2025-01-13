@@ -110,13 +110,13 @@ def home():
         <style>
                     
             .init_info {
-                padding-top: 70px;
+                padding-top: 65px;
                 font-size: 55px;  
             }
                     
             .init_p {
                 font-size: 20px;
-                padding-right: 5vw;
+                padding-right: 4vw;
             }
                     
             .green-box {
@@ -129,35 +129,63 @@ def home():
                 width: 80%;
             }
                     
+            .contact {
+                padding-top: 100px;
+                padding-right: 40px;
+                font-style: italic;
+            }
                     
         </style>
 
         <div class="init_info"> 
             <h>Welcome to ScleroBase</h>
-            <div class="init_p">The hub for searching and comparing protein expression levels for individuals with sclerederma!</div>
+            <div class="init_p">A Web-App for searching and comparing protein expression levels for individuals with scleraderma - and it's easy!</div>
         </div>
         <div class="green-box">
             <ul>
-                <li style="font-size: 20px; padding: 10px;"><b>Explore All proteins</b>: Information about samples and conditions.</li>
-                <li style="font-size: 20px; padding: 10px;"><b>Search for specific protein</b>: Protein-level information with expression data.</li>
-                <li style="font-size: 20px; padding: 10px;"><b>Compare protein expression levels</b>: Highlights significantly regulated proteins.</li>
+                <li style="font-size: 20px; padding: 10px;"><b style="font-size:22px">Explore All proteins</b>: Search our database or simply look to the right at our volcano plot.</li>
+                <br>
+                <li style="font-size: 20px; padding: 10px;"><b style="font-size:22px">Search for specific protein</b>: Enter a protein, and check out the graphs.</li>
+                <br>
+                <li style="font-size: 20px; padding: 10px;"><b style="font-size:22px">Compare protein expression levels</b>: Compare graphs side by side.</li>
             </ul>
         </div>
+        <div class="contact">The Higgins Lab collects it's own data, and the graphs are derived thereof. If you feel like adding your very own data, please contact kb822@ic.ac.uk</div>
         """, unsafe_allow_html=True)
 
     # Right Column: Volcano Plot
     with col2:
         # Center, increase size, and change color of the subheader using HTML
         st.markdown("""
-        <h2 style='text-align: center; font-size: 35px; color: orange; padding-right: 10px; padding-bottom: 30px'>Volcano Plot</h2>
+        <h2 style='text-align: center; font-size: 35px; color: orange; padding-right: 10px;'></h2>
         """, unsafe_allow_html=True)
         
         plot_volcano(volcano)  # Generate the plot
 
+
+    st.markdown("""
+        <h2 style='color: green;'></h2>
+    """, unsafe_allow_html=True)
+
     st.markdown("""
         <h2 style='color: green;'>Protein Search</h2>
     """, unsafe_allow_html=True)
-  
+
+    st.markdown(
+        """
+        <p style='color: black; font-size: 18px; line-height: 1.5; font-style: italic'>
+            Search for a protein using one of four reference types below, 
+            and click on <b>Generate Plots</b> to see results. 
+            If you are interested in the protein, select <b>Add Protein</b> 
+            on the right-hand side. Then, at any time, you can 
+            generate comparison plots of this protein by pressing <b>Plot Comparison</b> 
+            when viewing other proteins.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
     if "protein_options" not in st.session_state:
     # Load and cache data
         metadata, proteins, _ = get_data()
@@ -187,7 +215,6 @@ def home():
                         "filtered_data": filtered_data,
                         "metadata_info": metadata_info,
                         "protein_name": protein_name,
-                        "volcano_plot_data": volcano
                     }
 
                 except Exception as e:
@@ -201,25 +228,18 @@ def home():
                 protein_name = data["protein_name"]
                 filtered_data = data["filtered_data"]
                 metadata_info = data["metadata_info"]
-                volcano = data["volcano_plot_data"]
-
+                
                 # Add tabs and display plots
-                corr_tab, box_tab, volc_tab = st.tabs(['Correlation Plot', 'Box Plot', 'Volcano Plot'])
+                corr_tab, box_tab= st.tabs(['Correlation Plot', 'Box Plot'])
                 with corr_tab:
-                    st.subheader(f"Correlation Plot for {protein_name}")
+                    # st.subheader(f"Correlation Plot for {protein_name}")
                     corr_plot = plot_correlation(filtered_data, metadata_info, protein_name)
                     st.pyplot(corr_plot)
 
                 with box_tab:
-                    st.subheader(f"Box Plot for {protein_name}")
+                    # st.subheader(f"Box Plot for {protein_name}")
                     box_plot = plot_boxplot(filtered_data, metadata_info, protein_name)
                     st.pyplot(box_plot)
-
-                with volc_tab:
-                    st.subheader(f"Volcano Plot")
-                    st.markdown("Displaying a volcano plot for the provided dataset.")
-                    volcano_plot = plot_volcano(volcano)
-                    st.pyplot(volcano_plot)
 
             except Exception as e:
                 st.error(f"An error occurred while displaying the plots: {str(e)}")
@@ -287,6 +307,8 @@ def home():
                 else:
                     st.warning(f"{protein_id} is already in the comparison list.")
         
+        # Add padding above the graph
+        st.markdown("<div style='padding-top: 27px;'></div>", unsafe_allow_html=True)
         generate_and_display_plots("Generate Comparison", id_type, selected_protein, "compare_proteins_button")
  
 

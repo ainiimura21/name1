@@ -81,13 +81,25 @@ def plot_volcano(data):
             font=dict(size=16, family='Arial', style='italic')
         ),
         title_x=0.05,  # Center the title
-        title_y=0.9,
+        title_y=0.87,
         plot_bgcolor="white",
         hovermode="closest",
         height=700,  # Make the graph taller
-        margin=dict(l=50, r=50, t=80, b=50),  # Adjust margins for symmetry
+        margin=dict(l=50, r=50, t=100, b=50),  # Adjust top margin for additional title
         xaxis=dict(range=[-max(abs(data['logFC'])) - 0.2, max(abs(data['logFC'])) + 0.2])  # Symmetrical X-axis range
     )
+
+    # Add an annotation for the extra title above the main title
+    fig.add_annotation(
+        text="<b>Volcano Plot<b>",  # Replace with your desired title
+        xref="paper",  # Use 'paper' coordinates to position relative to the figure
+        yref="paper",
+        x=-0.01,  # Center the title horizontally
+        y=1.09,  # Position above the main title (adjust as needed)
+        showarrow=False,  # No arrow for a title
+        font=dict(size=24, family="Arial", color="orange")  # Customize font
+    )
+
 
     # Display the interactive Plotly chart within your Streamlit app
     st.plotly_chart(fig)
