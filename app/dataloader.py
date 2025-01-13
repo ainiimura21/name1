@@ -87,4 +87,3 @@ def filter_data(proteins, metadata, protein_id, id_type):
 
 
     return merged_data
-

@@ -2,12 +2,10 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-from dataloader import filter_data, load_data,load_singlecell_data
-from Correlation import load_data, filter_data, plot_correlation
-from boxplot import plot_boxplot
-from volcano import plot_volcano
-from UMAP import plot_umap
-from Violin import plot_violin
+
+from plots.Correlation import load_data, filter_data, plot_correlation
+from plots.boxplot import plot_boxplot
+from plots.volcano import plot_volcano
 
 # Get current file path
 BASE_PATH = Path(__file__).parent
@@ -16,9 +14,6 @@ BASE_PATH = Path(__file__).parent
 METADATA_PATH = str(BASE_PATH.parent / "Core data/somalogic_metadata.csv")
 PROTEINS_PATH = str(BASE_PATH.parent / "Core data/proteins_plot.csv")
 VOLCANO_PATH = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
-SINGLECELLADATA_PATH = str(BASE_PATH.parent / "Core data")
-SSC_HEALTHY_PROTS_PATH = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
-
 
 # Set page configuration
 st.set_page_config(
@@ -95,19 +90,17 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
 @st.cache_data
 def get_data():
     """Load and cache metadata and protein data."""
     metadata, proteins = load_data(METADATA_PATH, PROTEINS_PATH)
     volcano = pd.read_csv(VOLCANO_PATH)  # Load the volcano dataset separately
-    single_cell_data = load_singlecell_data(SINGLECELLADATA_PATH) 
-    return metadata, proteins, volcano, single_cell_data
+    return metadata, proteins, volcano
 
 def home():
 
     # Load data
-    metadata, proteins, volcano, single_cell_data = get_data()
+    metadata, proteins, volcano = get_data()
 
     # Create two columns with custom width proportions
     col1, col2 = st.columns([3, 4])  # col1 will take up 2/5 of the space, col2 will take up 3/5
@@ -191,7 +184,7 @@ def home():
 
     if "protein_options" not in st.session_state:
     # Load and cache data
-        metadata, proteins, volcano, single_cell_data = get_data()
+        metadata, proteins, _ = get_data()
         st.session_state["protein_options_map"] = {
             "EntrezGeneID": proteins["EntrezGeneID"].dropna().unique().tolist(),
             "EntrezGeneSymbol": proteins["EntrezGeneSymbol"].dropna().unique().tolist(),
@@ -209,13 +202,14 @@ def home():
             else:
                 try:
                     # Load data and cache in session state
-                    metadata, proteins, volcano, single_cell_data = get_data()
-                    merged_data = filter_data(proteins, metadata, protein_id, id_type)
-                    protein_name = merged_data["TargetFullName"].iloc[0]
+                    metadata, proteins, volcano = get_data()
+                    filtered_data, metadata_info = filter_data(proteins, metadata, protein_id, id_type)
+                    protein_name = filtered_data["TargetFullName"].iloc[0]
 
                     # Store data in session state
                     st.session_state["plot_data"] = {
-                        "merged_data": merged_data,
+                        "filtered_data": filtered_data,
+                        "metadata_info": metadata_info,
                         "protein_name": protein_name,
                     }
 
@@ -232,7 +226,7 @@ def home():
                 metadata_info = data["metadata_info"]
                 
                 # Add tabs and display plots
-                corr_tab, box_tab, violin_tab, umap_tab= st.tabs(['Correlation Plot', 'Box Plot', 'Violin Plot', 'Umap Plot'])
+                corr_tab, box_tab= st.tabs(['Correlation Plot', 'Box Plot'])
                 with corr_tab:
                     # st.subheader(f"Correlation Plot for {protein_name}")
                     corr_plot = plot_correlation(filtered_data, metadata_info, protein_name)
@@ -243,18 +237,9 @@ def home():
                     box_plot = plot_boxplot(filtered_data, metadata_info, protein_name)
                     st.pyplot(box_plot)
 
-                with umap_tab:
-                    # Pass protein_name to the plot_umap function
-                    umap_plot = plot_umap(filtered_data, protein_name)
-                    st.pyplot(umap_plot)
-
-                with violin_tab:
-                    # Pass protein_name to the plot_violin function
-                    violin_plot = plot_violin(filtered_data, protein_name)
-                    st.pyplot(violin_plot)
-
             except Exception as e:
                 st.error(f"An error occurred while displaying the plots: {str(e)}")
+
 
 
     #Dropdown box

@@ -1,3 +1,0 @@
-Google drive link for Single Cell Dataset (used to plot UMAP)
-
-https://drive.google.com/file/d/1fRyjmM4d9_nE1p6LPMKI95t3ivBrGBKb/view?usp=share_link
