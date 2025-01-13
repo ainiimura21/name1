@@ -3,9 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from Correlation import load_data, filter_data, plot_correlation
-from boxplot import plot_boxplot
-from volcano import plot_volcano
+from plots.Correlation import load_data, filter_data, plot_correlation
+from plots.boxplot import plot_boxplot
+from plots.volcano import plot_volcano
 
 # Get current file path
 BASE_PATH = Path(__file__).parent
