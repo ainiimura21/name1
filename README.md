@@ -1,4 +1,14 @@
-# Monitoring Progression of Scleroderma
+
+<p align="center">
+  <img src="assets/logo.png" alt="ScleroBase Logo" width="500" />
+</p>
+
+<p align="center">
+  <i> --- Monitoring Progression of Scleroderma ---</i>
+</p>
+
+---
+
 
 ---
 ## Project Description
