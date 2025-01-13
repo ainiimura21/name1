@@ -4,7 +4,13 @@ from pandas.errors import ParserError
 from unittest.mock import patch, mock_open
 from app.dataloader import load_data
 
-# Fixture for valid test data
+
+"""Unit test for the dataloader.py file. Four functions are tested:
+ filter_data()
+ getEntrezGeneSymbol()
+ load_singlecell_data()
+ load_data()
+ """
 @pytest.fixture
 def valid_metadata_file():
     """Fixture to provide valid metadata CSV content."""
