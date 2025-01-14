@@ -155,7 +155,7 @@ def home():
                 <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Compare protein expression levels</b>: Compare graphs side by side.</li>
             </ul>
         </div>
-        <div class="contact">The Higgins Lab collects it's own data, and the graphs are derived thereof. If you feel like adding your very own data, please contact kb822@ic.ac.uk</div>
+        <div class="contact">The Higgins Lab collects its own data, and the graphs are derived thereof. If you feel like adding your very own data, please contact kb822@ic.ac.uk</div>
         """, unsafe_allow_html=True)
 
     # Right Column: Volcano Plot
