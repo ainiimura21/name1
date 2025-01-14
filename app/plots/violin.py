@@ -1,3 +1,4 @@
+# To run this code from python, download dataset file from google drive (link is in single_cell_data_link.txt in Core data) and move downloaded file to Core data folder
 import scanpy as sc
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -11,10 +12,13 @@ def plot_violin(input_data_key,input_data_value):
     single_cell_data=load_singlecell_data(single_cell_data_path)
 
     with rc_context({"figure.figsize": (5, 10)}):
-        sc.pl.violin(single_cell_data, [EntrezGeneSymbol], groupby="leiden",rotation=90)
-    # plt.subplots_adjust(top=0.02)
+        sc.pl.violin(single_cell_data, [EntrezGeneSymbol], groupby="leiden",rotation=90) # generate violin plot and rotate legend to facilitate cell type reading
     plt.xticks(fontsize=5)
     plt.show()
     return plt
 
+<<<<<<< HEAD
 plot_violin('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH GENESYMBOL
+=======
+# violin_plot('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH GENESYMBOL
+>>>>>>> f75d0686c20fb6403a0cdd53bdaf44f7dbcef339
