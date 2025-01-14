@@ -30,7 +30,7 @@ st.set_page_config(
 
 # Webpage design
 st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400&family=Actor&display=swap" rel="stylesheet"> /* Custom Google font */
+    <link href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400&family=Actor&display=swap" rel="stylesheet"> 
     <style>
         /* Hide the Streamlit default elements */
         #MainMenu {visibility: hidden;} 
@@ -138,25 +138,6 @@ def home():
                 padding-right: 40px;
                 font-style: italic;
                 font-size: 15px;
-            }
-
-            /* Light and dark mode friendly */
-            @media (prefers-color-scheme: light) {
-                .green-box {
-                    color: black; 
-                }
-                .contact {
-                    color: black; 
-                }
-            }
-        
-            @media (prefers-color-scheme: dark) {
-                .green-box {
-                    color: white; 
-                }
-                .contact {
-                    color: white;  
-                }
             }
                     
         </style>
