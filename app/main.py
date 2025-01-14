@@ -112,51 +112,65 @@ def home():
 
     with col1:
         st.markdown("""
-        <style>
-                    
-            .init_info {
-                font-size: 45px;  
-            }
-                    
-            .init_p {
-                font-size: 18px;
-                padding-right: 3vw;
-            }
-                    
-            .green-box {
-                margin-top: 40px;
-                background-color: #e0f7e9;  /* Light green background */
-                border-radius: 20px;      /* Rounded corners */
-                padding: 15px;           /* Inner padding */
-                border: 1px solid #a5d6a7; /* Light green border */
-                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
-                width: 80%;
-            }
-                    
-            .contact {
-                padding-top: 60px;
-                padding-right: 40px;
-                font-style: italic;
-                font-size: 15px;
-            }
-                    
-        </style>
+            <style>
+                .init_info {
+                    font-size: 45px;  
+                }
+                        
+                .init_p {
+                    font-size: 18px;
+                    padding-right: 3vw;
+                }
+                        
+                .green-box {
+                    margin-top: 40px;
+                    background-color: #e0f7e9;  /* Light green background */
+                    border-radius: 20px;      /* Rounded corners */
+                    padding: 15px;           /* Inner padding */
+                    border: 1px solid #a5d6a7; /* Light green border */
+                    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
+                    width: 80%;
+                }
+                        
+                .contact {
+                    padding-top: 60px;
+                    padding-right: 40px;
+                    font-style: italic;
+                    font-size: 15px;
+                }
 
-        <div class="init_info"> 
-            <h>Welcome to ScleroBase...</h>
-            <div class="init_p">A web application for searching and comparing protein expression levels for individuals with scleroderma - and it's easy!</div>
-        </div>
-        <div class="green-box">
-            <ul>
-                <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Explore All proteins</b>: Search our database or simply look to the right at our volcano plot.</li>
-                <br>
-                <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Search for specific protein</b>: Enter a protein, and check out the graphs.</li>
-                <br>
-                <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Compare protein expression levels</b>: Compare graphs side by side.</li>
-            </ul>
-        </div>
-        <div class="contact">The Higgins Lab collects its own data, and the graphs are derived thereof. If you feel like adding your very own data, please contact kb822@ic.ac.uk</div>
+                /* Default light mode styling */
+                @media (prefers-color-scheme: light) {
+                    .green-box {
+                        color:rgb(255, 255, 255); 
+                    }
+                }
+
+                /* Dark mode styling */
+                @media (prefers-color-scheme: dark) {
+                    .green-box {
+                        color:rgb(0, 0, 0); 
+                    }
+                }
+                        
+            </style>
+
+            <div class="init_info"> 
+                <h>Welcome to ScleroBase...</h>
+                <div class="init_p">A web application for searching and comparing protein expression levels for individuals with scleroderma - and it's easy!</div>
+            </div>
+            <div class="green-box">
+                <ul>
+                    <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Explore All proteins</b>: Search our database or simply look to the right at our volcano plot.</li>
+                    <br>
+                    <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Search for specific protein</b>: Enter a protein, and check out the graphs.</li>
+                    <br>
+                    <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Compare protein expression levels</b>: Compare graphs side by side.</li>
+                </ul>
+            </div>
+            <div class="contact">The Higgins Lab collects its own data, and the graphs are derived thereof. If you feel like adding your very own data, please contact kb822@ic.ac.uk</div>
         """, unsafe_allow_html=True)
+
 
     # Right Column: Volcano Plot
     with col2:
@@ -174,7 +188,7 @@ def home():
 
     st.markdown(
         """
-        <p style='color: black; font-size: 18px; line-height: 1.5; font-style: italic'>
+        <p style='font-size: 18px; line-height: 1.5; font-style: italic'>
             Search for a protein using one of four reference types below, 
             and click on <b>Generate Plots</b> to see results. 
             If you are interested in the protein, select <b>Add Protein</b> 
