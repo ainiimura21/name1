@@ -184,7 +184,5 @@ def plot_correlation(filtered_data, metadata_info, protein_name):
     # Optimize layout
     plt.tight_layout()
 
-    # Display the plot
-    plt.show()
-
-    return plt
+    # Return the Figure object instead of showing it
+    return plt.gcf()

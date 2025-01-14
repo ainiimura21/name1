@@ -71,8 +71,8 @@ def filter_data(proteins, metadata, protein_id, id_type):
         raise ValueError(f"No metadata found for Sample IDs: {sample_ids}.")
 
     # Debug: Print metadata subset
-    print("Metadata Info:")
-    print(metadata_info.head())
+    # print("Metadata Info:")
+    # print(metadata_info.head())
 
     # Merge filtered_data with metadata_info on SampleId
     merged_data = pd.merge(
@@ -84,8 +84,8 @@ def filter_data(proteins, metadata, protein_id, id_type):
     )
 
     # Debug: Print merged data
-    print("Merged Data:")
-    print(merged_data.head())
+    # print("Merged Data:")
+    # print(merged_data.head())
 
 
     return merged_data

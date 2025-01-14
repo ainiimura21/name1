@@ -16,9 +16,6 @@ def plot_boxplot(filtered_data, metadata_info, protein_name):
     # Check if the merge was successful and print the first few rows
     if merged_data.empty:
         print("Error: Merged data is empty. Please check the merge condition.")
-    else:
-        print("Merged Data:")
-        print(merged_data.head())
 
     # Create sub datasets for each condition
     conditions = ["Healthy", "VEDOSS", "SSC_low", "SSC_high"]
@@ -68,7 +65,5 @@ def plot_boxplot(filtered_data, metadata_info, protein_name):
     for whisker in bp['whiskers']:
         whisker.set(color='black', linewidth=2)
 
-    # Show the plot
-    plt.show()
-
-    return plt
+# Return the figure
+    return fig
