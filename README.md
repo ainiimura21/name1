@@ -17,9 +17,7 @@
 generate the following plots:
 - Correlation Plot
 - Boxplot
-- UMAP plot
 - Volcano plot
-- Violin plot
 
 
 ## Table of Contents
@@ -28,8 +26,8 @@ generate the following plots:
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Future Work](#futurework)
 - [Contributing](#contributing)
-- [License](#license)
 - [Contact/Support](#contact)
   
 ---
@@ -39,7 +37,7 @@ generate the following plots:
 Scleroderma is an autoimmune disease that can cause thickened areas of skin and connective tissues. To gain a deeper
 understanding of this condition, analysing the expression of different proteins observed in Scleroderma patients is 
 highly beneficial.
-This website utilizes a dataset to generate 4 graphs, enabling researchers to analyse results while requiring
+This website utilizes a dataset to generate graphs, enabling researchers to analyse results while requiring
 minimal bioinformatics expertise.
 
 
@@ -52,10 +50,9 @@ Users can search for proteins using multiple naming conventions including:
 - Entrez Gene ID
 - Entrez Gene Symbol
 
-Alternatively, users can utilize the volcano plot on the main page to select a protein by hovering over and clicking 
-on the plot.
 #### Volcano Plot
 The volcano plot plots the relationship between the fold change (log₂ scale) and the significance (represented as -log₁₀ of the P-value) of more than 7000 proteins. It visually highlights significant increases and decreases in expression, statistical signifiance with the P-value, and a customizable threshold for fold change. The dataset is a comparison between scleroderma and healthy patients.
+By hovering over each point, you can identify the exact protein.
 
 <p align="center">
   <img src="assets/volcanoplot.png" alt="ScleroBase Logo" width="800" />
@@ -75,15 +72,6 @@ The box plot represents the intensity of protein expression across different pat
   <img src="assets/boxplot.png" alt="ScleroBase Logo" width="800" />
 </p>
 
-#### UMAP Plot
-The UMAP (Uniform Manifold Approximation and Projection) is an algorithm based on reducing a high-dimensional dataset to a smaller 2D or 3D plot. In doing so, the plot represents similar cells closer together as clusters while distancing different cells. The generated plots visualise the expression of the chosen protein across cells and cell types. 
-The Leiden-clustered UMAP plot presents each point as a cell with clusters representing a specific cell type. 
-The specific protein UMAP plot shows the expression level of that protein within the UMAP space with the colour gradient portraying expression intensity (low expression in grey to high expression in blue).
-
-#### Violin Plot
-The violin plot uses the same single cell database file as the UMAP plot, providing an alternative visualisation of the data. This plot showcases the distribution of the protein expression across cell types.
-
-
 ## Installation
 
 1. Clone the repository:
@@ -96,12 +84,17 @@ The violin plot uses the same single cell database file as the UMAP plot, provid
 pip install numpy pandas matplotlib seaborn streamlit scanpy
  ```
 
+
 ## Usage
 
 To run the project, use the following command:
 ```bash
 streamlit run app/main.py
 ```
+
+## Future Work
+
+We are currently working on integrating UMAP and Violin plots into Streamlit. While the code functions correctly when run individually, we are optimizing its performance to reduce the run time.
 
 ## Contributing
 
