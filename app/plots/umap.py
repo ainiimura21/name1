@@ -4,7 +4,7 @@ import scanpy as sc
 import pandas as pd
 from matplotlib.pyplot import rc_context
 from matplotlib.colors import LinearSegmentedColormap
-from dataloader import load_singlecell_data,getEntrezGeneSymbol
+from app.dataloader import load_singlecell_data,getEntrezGeneSymbol
 
 from pathlib import Path
 
@@ -32,5 +32,5 @@ def plot_umap(input_data_key,input_data_value):
     return sc.pl
 
 
-# umap_plot('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH GENESYMBOL
+plot_umap('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH THBS1
 # plot_umap('EntrezGeneID','7057')

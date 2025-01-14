@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-
+# This section should be uncommented when plotting UMAP and Violin plots directly from python. This imports the data file
+# from dataloader import filter_data, load_data,load_singlecell_data
 from plots.Correlation import load_data, filter_data, plot_correlation
 from plots.boxplot import plot_boxplot
 from plots.volcano import plot_volcano
@@ -14,6 +15,10 @@ BASE_PATH = Path(__file__).parent
 METADATA_PATH = str(BASE_PATH.parent / "Core data/somalogic_metadata.csv")
 PROTEINS_PATH = str(BASE_PATH.parent / "Core data/proteins_plot.csv")
 VOLCANO_PATH = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
+
+# This code should be uncommented to plot UMAP and Violin plots directly from python. This loads the path to the data file (downloaded from the google drive link in Core data) which should be saved in Core data
+# SINGLECELLADATA_PATH = str(BASE_PATH.parent / "Core data")
+# SSC_HEALTHY_PROTS_PATH = str(BASE_PATH.parent / "Core data/SSC_all_Healthy_allproteins.csv")
 
 # Set page configuration
 st.set_page_config(
