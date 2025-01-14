@@ -28,9 +28,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  
 )
 
-# Add custom fonts from Google Fonts
+# Webpage design
 st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400&family=Actor&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@400&family=Actor&display=swap" rel="stylesheet"> /* Custom Google font */
     <style>
         /* Hide the Streamlit default elements */
         #MainMenu {visibility: hidden;} 
@@ -61,7 +61,7 @@ st.markdown("""
 
         .brand {
             font-family: 'MuseoModerno', cursive;  /* Updated to MuseoModerno */
-            font-size: 35px;  /* Brand name size */
+            font-size: 35px;  
             font-weight: 400;
             color: white;
             padding: 4px 10px 23px 10px;
@@ -139,12 +139,31 @@ def home():
                 font-style: italic;
                 font-size: 15px;
             }
+
+            /* Light and dark mode friendly */
+            @media (prefers-color-scheme: light) {
+                .green-box {
+                    color: black; 
+                }
+                .contact {
+                    color: black; 
+                }
+            }
+        
+            @media (prefers-color-scheme: dark) {
+                .green-box {
+                    color: white; 
+                }
+                .contact {
+                    color: white;  
+                }
+            }
                     
         </style>
 
         <div class="init_info"> 
             <h>Welcome to ScleroBase...</h>
-            <div class="init_p">A Web-App for searching and comparing protein expression levels for individuals with scleraderma - and it's easy!</div>
+            <div class="init_p">A web application for searching and comparing protein expression levels for individuals with scleroderma - and it's easy!</div>
         </div>
         <div class="green-box">
             <ul>
