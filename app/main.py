@@ -161,11 +161,11 @@ def home():
             </div>
             <div class="green-box">
                 <ul>
-                    <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Explore All proteins</b>: Search our database or simply look to the right at our volcano plot.</li>
+                    <li style="color: black; font-size: 18px; padding: 10px;"><b style="font-size:20px">Explore All proteins</b>: Search our database or simply look to the right at our volcano plot.</li>
                     <br>
-                    <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Search for specific protein</b>: Enter a protein, and check out the graphs.</li>
+                    <li style="color: black; font-size: 18px; padding: 10px;"><b style="font-size:20px">Search for specific protein</b>: Enter a protein, and check out the graphs.</li>
                     <br>
-                    <li style="font-size: 18px; padding: 10px;"><b style="font-size:20px">Compare protein expression levels</b>: Compare graphs side by side.</li>
+                    <li style="color: black; font-size: 18px; padding: 10px;"><b style="font-size:20px">Compare protein expression levels</b>: Compare graphs side by side.</li>
                 </ul>
             </div>
             <div class="contact">The Higgins Lab collects its own data, and the graphs are derived thereof. If you feel like adding your very own data, please contact kb822@ic.ac.uk</div>
