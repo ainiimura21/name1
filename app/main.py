@@ -3,8 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 # This section should be uncommented when plotting UMAP and Violin plots directly from python. This imports the data file
-# from dataloader import filter_data, load_data,load_singlecell_data
-from plots.Correlation import load_data, filter_data, plot_correlation
+from dataloader import load_data,load_singlecell_data
+from plots.Correlation import filter_data, plot_correlation
 from plots.boxplot import plot_boxplot
 from plots.volcano import plot_volcano
 
