@@ -17,8 +17,4 @@ def plot_violin(input_data_key,input_data_value):
     plt.show()
     return plt
 
-<<<<<<< HEAD
-plot_violin('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH GENESYMBOL
-=======
 # violin_plot('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH GENESYMBOL
->>>>>>> f75d0686c20fb6403a0cdd53bdaf44f7dbcef339
