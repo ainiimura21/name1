@@ -2,7 +2,7 @@ import scanpy as sc
 from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import rc_context
-from dataloader import load_singlecell_data,getEntrezGeneSymbol
+from dataloader import load_singlecell_data, getEntrezGeneSymbol
 
 def plot_violin(input_data_key,input_data_value):
     EntrezGeneSymbol = getEntrezGeneSymbol(input_data_key,input_data_value)
@@ -17,4 +17,4 @@ def plot_violin(input_data_key,input_data_value):
     plt.show()
     return plt
 
-# violin_plot('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH GENESYMBOL
+plot_violin('EntrezGeneSymbol','THBS1') # EXAMPLE OF USAGE WITH GENESYMBOL

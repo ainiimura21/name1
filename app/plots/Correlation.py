@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LogLocator, LogFormatterSciNotation, NullFormatter
 
-
+#To load the data 
 def load_data(metadata_path, proteins_path):
     """
     Load metadata and protein data from the provided file paths.
@@ -13,7 +13,7 @@ def load_data(metadata_path, proteins_path):
     proteins = pd.read_csv(proteins_path)
     return metadata, proteins
 
-
+#To filter the data based on entries
 def filter_data(proteins, metadata, protein_id, id_type):
     """
     Filter the proteins data for a specific protein ID based on the ID type

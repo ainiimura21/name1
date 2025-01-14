@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LogLocator, NullFormatter
 
-def plot_boxplot(merged_data, protein_name):
+def plot_boxplot(merged_data, metadata_info, protein_name):
     """
     Create a boxplot of the intensity of 4 Scleroderma categories with a logarithmic scale.
     """
