@@ -277,40 +277,50 @@ def home():
     if "show_comparison" not in st.session_state:
         st.session_state["show_comparison"] = False
 
-    # Control variable to check if "Generate Plots" has been clicked
+    # Check if "Generate Plots" has been clicked
     if "generate_plots_clicked" not in st.session_state:
         st.session_state["generate_plots_clicked"] = False
 
-
     with col2:
-        selected_protein = st.selectbox(
+        selected_protein_info = st.selectbox(
             "Selected Proteins for Comparison:",
-            options=st.session_state.get("selected_proteins", []),
-            index=0 if st.session_state.get("selected_proteins") else -1,  # Default to first item or empty
+            options=[
+                f"{protein['protein_id']} ({protein.get('selected_id_type', 'Unknown')})"
+                for protein in st.session_state.get("selected_proteins", [])
+            ],
+            index=0 if st.session_state.get("selected_proteins") else -1,
             help="Select a protein to view detailed information."
         )
 
-        # "Compare Proteins" button
+        # Extract the selected protein and its reference type
+        selected_protein, selected_id_type = None, None
+        if selected_protein_info:
+            selected_protein, selected_id_type = selected_protein_info.split(" (")
+            selected_id_type = selected_id_type.rstrip(")")
+
         if st.button("Add Protein"):
-            if not protein_id:
-                st.error("Please enter a valid Protein ID.")
+            if not protein_id or not id_type:
+                st.error("Please enter a valid Protein ID and Reference Type.")
             else:
-                # Initialize session state for comparison
                 if "show_comparison" not in st.session_state:
                     st.session_state["show_comparison"] = True
                 if "selected_proteins" not in st.session_state:
                     st.session_state["selected_proteins"] = []
-                
-                # Add protein to the comparison list
-                if protein_id not in st.session_state["selected_proteins"]:
-                    st.session_state["selected_proteins"].append(protein_id)
-                    st.success(f"Added {protein_id} to comparison list!")
+
+                # Add protein and reference type
+                protein_entry = {"protein_id": protein_id, "selected_id_type": id_type}
+                if "selected_id_type" not in protein_entry:
+                    st.warning("Reference type missing.")
+                if protein_entry not in st.session_state["selected_proteins"]:
+                    st.session_state["selected_proteins"].append(protein_entry)
+                    st.success(f"Added {protein_id} ({id_type}) to comparison list!")
                 else:
-                    st.warning(f"{protein_id} is already in the comparison list.")
-        
+                    st.warning(f"{protein_id} ({id_type}) is already in the comparison list.")
+
         # Add padding above the graph
         st.markdown("<div style='padding-top: 27px;'></div>", unsafe_allow_html=True)
-        generate_and_display_plots("Generate Comparison", id_type, selected_protein, "compare_proteins_button")
+        generate_and_display_plots("Generate Comparison", selected_id_type, selected_protein, "compare_proteins_button")
+
  
 
 def research():
