@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from pandas.errors import ParserError
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 from dataloader import load_data
 
 
