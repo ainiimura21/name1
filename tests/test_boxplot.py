@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from unittest.mock import patch, mock
-from app.boxplot import plot_boxplot
+from plots.boxplot import plot_boxplot
 import matplotlib.pyplot as plt
 
 # Fixture for valid test data

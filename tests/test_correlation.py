@@ -5,4 +5,4 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import LogLocator, NullFormatter
 import pytest
 from unittest.mock import patch, mock
-from app.Correlation import plot_correlation
+from app.plots.Correlation import plot_correlation

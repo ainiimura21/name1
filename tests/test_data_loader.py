@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from pandas.errors import ParserError
 from unittest.mock import patch, mock_open
-from app.dataloader import load_data
+from dataloader import load_data
 
 
 """Unit test for the dataloader.py file. Four functions are tested:

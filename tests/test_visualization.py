@@ -1,5 +1,5 @@
 import pandas as pd
-from app.visualization import volcano_plot
+from app.plots.volcano import volcano_plot
 
 def test_volcano_plot():
     """Test generating a volcano plot."""

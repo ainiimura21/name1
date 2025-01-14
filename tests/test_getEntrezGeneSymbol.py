@@ -1,5 +1,5 @@
 import unittest
-from app.dataloader import getEntrezGeneSymbol  
+from dataloader import getEntrezGeneSymbol  
 
 class TestgetEntrezGeneSymbol(unittest.TestCase):
 
